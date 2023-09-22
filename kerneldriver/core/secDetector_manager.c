@@ -20,6 +20,9 @@
 #include "hook_unit/secDetector_hook.h"
 #include "secDetector_manager.h"
 
+static DEFINE_IDR(g_module_idr);
+static LIST_HEAD(secDetector_module_list);
+
 void secDetector_module_unregister(struct secDetector_module *module)
 {
 	struct secDetector_workflow *wf = NULL;
@@ -32,7 +35,7 @@ void secDetector_module_unregister(struct secDetector_module *module)
 		return;
 	}
 
-	mutex_lock(&g_module_list_mutex);
+	mutex_lock(&g_hook_list_array_mutex);
 	ret_id = idr_remove(&g_module_idr, (unsigned long)module->id);
 	if (ret_id == NULL) {
 		goto error;
@@ -53,7 +56,7 @@ void secDetector_module_unregister(struct secDetector_module *module)
 error:
 	list_del_rcu(&module->list);
 	synchronize_rcu();
-	mutex_unlock(&g_module_list_mutex);
+	mutex_unlock(&g_hook_list_array_mutex);
 	
 	return;
 }
@@ -78,7 +81,7 @@ int secDetector_module_register(struct secDetector_module *module)
 		return module_id;
 	}
 
-	mutex_lock(&g_module_list_mutex);
+	mutex_lock(&g_hook_list_array_mutex);
 	for (i = 0, wf = module->workflow_array; i < module->workflow_array_len; i++, wf++) {
                 if (wf == NULL) {
 			ret = -EINVAL;
@@ -95,12 +98,12 @@ int secDetector_module_register(struct secDetector_module *module)
 
 	module->id = (unsigned int)module_id;
 	list_add_rcu(&module->list, &secDetector_module_list);
-	mutex_unlock(g_module_list_mutex);
+	mutex_unlock(&g_hook_list_array_mutex);
 
 	return ret;
 
 error:
-	mutex_unlock(g_module_list_mutex);
+	mutex_unlock(&g_hook_list_array_mutex);
 	secDetector_module_unregister(module);
 	return ret;
 }
