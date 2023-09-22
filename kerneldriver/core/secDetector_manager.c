@@ -65,8 +65,8 @@ int secDetector_module_register(struct secDetector_module *module)
         int ret = 0;
         int i;
         int module_id;
-	    unsigned int callback_id = 0;
         unsigned int callback_id = 0;  
+
         if (module == NULL) {
                 pr_err("[secDetector] register module is null\n");
                 return -EINVAL;
@@ -81,7 +81,7 @@ int secDetector_module_register(struct secDetector_module *module)
 	mutex_lock(&g_module_list_mutex);
 	for (i = 0, wf = module->workflow_array; i < module->workflow_array_len; i++, wf++) {
                 if (wf == NULL) {
-		  	            ret = -EINVAL;
+                        ret = -EINVAL; 
                         goto error;
                 }
 		wf->module = module;
