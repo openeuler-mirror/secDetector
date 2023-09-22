@@ -66,7 +66,7 @@ int secDetector_module_register(struct secDetector_module *module)
         int i;
         int module_id;
 	    unsigned int callback_id = 0;
-
+        unsigned int callback_id = 0;  
         if (module == NULL) {
                 pr_err("[secDetector] register module is null\n");
                 return -EINVAL;
