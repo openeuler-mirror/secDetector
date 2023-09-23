@@ -29,7 +29,7 @@ struct hook_list_func {
 
 static int insert_timer_callback(struct secDetector_workflow *workflow);
 static int unlink_timer_callback(struct secDetector_workflow *workflow);
-static int timer_callback_exists(struct secDetector_workflow *workflow);
+static bool timer_callback_exists(struct secDetector_workflow *workflow);
 
 static struct hook_list_func hook_list_funcs[] = {
 	{

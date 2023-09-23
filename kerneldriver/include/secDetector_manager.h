@@ -42,7 +42,7 @@ struct secDetector_workflow {
 	struct list_head list;
 	struct rcu_head rcu;
 	unsigned int id;
-	struct seDetector_module *module;
+	struct secDetector_module *module;
 	atomic_t enabled;
 
 	unsigned int hook_type;
@@ -64,6 +64,6 @@ struct secDetector_module {
 
 extern void secDetector_init_manager(void);
 extern int secDetector_module_register(struct secDetector_module *module);
-extern int secDetector_module_unregister(struct secDetector_module *module);
+extern void secDetector_module_unregister(struct secDetector_module *module);
 
 #endif

@@ -69,7 +69,7 @@ static struct secDetector_tracepoint secDetector_tracepoint_hook_functions[] = {
                 .register_func = NULL,
                 .unregister_func = NULL,
         }
-}
+};
 
 int insert_tracepoint_hook(struct secDetector_workflow *workflow)
 {
@@ -83,7 +83,7 @@ int insert_tracepoint_hook(struct secDetector_workflow *workflow)
 	if (workflow->hook_type < TRACEPOINT_HOOK_START || workflow->hook_type > TRACEPOINT_HOOK_END)
 		return -1;
 	
-	head = &secDetector_hook_array[workflow->hooktype];
+	head = &secDetector_hook_array[workflow->hook_type];
 	if (list_empty(head) == 1) {
 		tp = &secDetector_tracepoint_hook_functions[workflow->hook_type - TRACEPOINT_HOOK_START];
 		if (tp == NULL || tp->register_func == NULL || tp->handler == NULL)
@@ -94,7 +94,7 @@ int insert_tracepoint_hook(struct secDetector_workflow *workflow)
 			return ret;
 	}
 
-	list_add_rcu(&workflow->list, &secDetector_hook_array[workflow->hooktype]);
+	list_add_rcu(&workflow->list, &secDetector_hook_array[workflow->hook_type]);
 
 	return ret;
 }
@@ -113,7 +113,7 @@ int delete_tracepoint_hook(struct secDetector_workflow *workflow)
         list_del_rcu(&workflow->list);
 	synchronize_rcu();
 
-        if (list_empty(&secDetector_hook_array[workflow->hooktype]) == 1) {
+        if (list_empty(&secDetector_hook_array[workflow->hook_type]) == 1) {
                 tp = &secDetector_tracepoint_hook_functions[workflow->hook_type - TRACEPOINT_HOOK_START];
                 if (tp == NULL || tp->register_func == NULL || tp->handler == NULL)
                         return -1;
@@ -134,7 +134,7 @@ bool tracepoint_exists(struct secDetector_workflow *workflow)
         if (workflow->hook_type < TRACEPOINT_HOOK_START || workflow->hook_type > TRACEPOINT_HOOK_END)
                 return -1;
 
-	head = &secDetector_hook_array[workflow->hooktype];
+	head = &secDetector_hook_array[workflow->hook_type];
 	list_for_each_entry(tmp_wf, head, list) {
 		if (tmp_wf == workflow)
 			return true;

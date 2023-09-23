@@ -23,7 +23,7 @@
 struct proc_dir_entry *g_root_dir;
 
 static unsigned int log_size = 4096;
-module_param(log_size, unit, 0400);
+module_param(log_size, uint, 0400);
 MODULE_PARM_DESC(log_size, "log size");
 
 static int __init secDetector_init(void)
@@ -49,7 +49,7 @@ static int __init secDetector_init(void)
 
 static void __exit secDetector_exit(void)
 {
-	secDector_destroy_log();
+	secDetector_destroy_log();
 	proc_remove(g_root_dir);
 
 	pr_debug("[secDetector] exit success\n");
