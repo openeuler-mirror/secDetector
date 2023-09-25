@@ -20,6 +20,7 @@
 #include <linux/seq_file.h>
 #include "secDetector_workflow_type.h"
 
+typedef struct secDetector_workflow secDetector_workflow_t;
 struct secDetector_module {
 	struct list_head list;
 	struct rcu_head rcu;
