@@ -1,13 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Technologies Co., Ltd. All rights reserved.
- * secDetector is licensed under Mulan PSL v2.
- * You can use this software according to the terms and conditions of the Mulan PSL v2.
- * You may obtain a copy of Mulan PSL v2 at:
- *          http://license.coscl.org.cn/MulanPSL2
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
- * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
- * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
- * See the Mulan PSL v2 for more details.
+ * SPDX-License-Identifier: GPL-2.0
  *
  * Author: zcfsite
  * create: 2023-09-21
@@ -113,11 +105,11 @@ static bool timer_callback_exists(struct secDetector_workflow *workflow)
 static int insert_timer_callback(struct secDetector_workflow *workflow)
 {
 	struct secDetector_timer *timer = NULL;
-        if (workflow == NULL)
-                return -1;
+	if (workflow == NULL)
+		return -1;
 	
-        list_for_each_entry(timer, &secDetector_timer_list, list) {
-                if (workflow->interval != timer->interval) {
+	list_for_each_entry(timer, &secDetector_timer_list, list) {
+		if (workflow->interval != timer->interval) {
 			list_add_rcu(&workflow->list, &timer->callback_list);
 			return 0;
 		}
@@ -141,12 +133,12 @@ static int insert_timer_callback(struct secDetector_workflow *workflow)
 
 static int unlink_timer_callback(struct secDetector_workflow *workflow)
 {
-        struct secDetector_timer *timer = NULL;
-        if (workflow == NULL)
-                return -1;
+	struct secDetector_timer *timer = NULL;
+	if (workflow == NULL)
+		return -1;
 
-        list_for_each_entry(timer, &secDetector_timer_list, list) {
-                if (workflow->interval != timer->interval) {
+	list_for_each_entry(timer, &secDetector_timer_list, list) {
+		if (workflow->interval != timer->interval) {
 			list_del_rcu(&workflow->list);
 			synchronize_rcu();
 			if (list_empty(&timer->callback_list) == 1) {
@@ -166,9 +158,9 @@ int insert_callback(struct secDetector_workflow *workflow)
 	int i;
 	int ret = -EFAULT;
 	struct hook_list_func *list_func = NULL;
-        if (workflow == NULL)
-                return ret;
-	
+	if (workflow == NULL)
+		return ret;
+
 	for (i = 0; i < ARRAY_SIZE(hook_list_funcs); i++) {
 		list_func = &hook_list_funcs[i];
 		if (workflow->hook_type >= list_func->type_min &&
@@ -185,23 +177,23 @@ int insert_callback(struct secDetector_workflow *workflow)
 
 int delete_callback(struct secDetector_workflow *workflow)
 {
-        int i;
-        int ret = -EFAULT;
-        struct hook_list_func *list_func = NULL;
-        if (workflow == NULL)
-                return ret;
+	int i;
+	int ret = -EFAULT;
+	struct hook_list_func *list_func = NULL;
+	if (workflow == NULL)
+		return ret;
 
-        for (i = 0; i < ARRAY_SIZE(hook_list_funcs); i++) {
-                list_func = &hook_list_funcs[i];
-                if (workflow->hook_type >= list_func->type_min &&
-                        workflow->hook_type <= list_func->type_max) {
-                        if (!list_func->exists(workflow))
-                                return 0;
-                        ret = list_func->delete(workflow);
-                        break;
-                }
-        }
+	for (i = 0; i < ARRAY_SIZE(hook_list_funcs); i++) {
+		list_func = &hook_list_funcs[i];
+		if (workflow->hook_type >= list_func->type_min &&
+			workflow->hook_type <= list_func->type_max) {
+			if (!list_func->exists(workflow))
+			return 0;
+			ret = list_func->delete(workflow);
+			break;
+		}
+	}
 
-        return ret;
+	return ret;
 }
 
