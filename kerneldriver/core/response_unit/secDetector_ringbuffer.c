@@ -326,7 +326,7 @@ static const struct file_operations dev_fops = {
 	.owner = THIS_MODULE,
 };
 
-static int ringbuf_output(struct ringbuf *rb, void *data, u64 size, u64 flags)
+static int ringbuf_output(struct ringbuf *rb, const void *data, u64 size, u64 flags)
 {
 	void *rec;
 
@@ -342,11 +342,10 @@ static int ringbuf_output(struct ringbuf *rb, void *data, u64 size, u64 flags)
 	return 0;
 }
 
-int secDetector_ringbuf_output(void *data, u64 size, u64 flags)
+int secDetector_ringbuf_output(const void *data, u64 size, u64 flags)
 {
 	return ringbuf_output(g_rb, data, size, flags);
 }
-EXPORT_SYMBOL(secDetector_ringbuf_output);
 
 int __init secDetector_ringbuf_dev_init(void)
 {
