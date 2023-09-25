@@ -6,6 +6,7 @@ secDetector_core-objs += hook_unit/secDetector_hook_tracepoint.o
 secDetector_core-objs += hook_unit/secDetector_hook.o
 secDetector_core-objs += response_unit/secDetector_proc.o
 secDetector_core-objs += response_unit/secDetector_response.o
+secDetector_core-objs += response_unit/secDetector_ringbuffer.o
 secDetector_core-objs += secDetector_workflow.o
 secDetector_core-objs += secDetector_manager.o
 secDetector_core-objs += secDetector_main.o
