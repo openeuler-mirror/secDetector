@@ -22,7 +22,7 @@ endif
 export KBUILD_EXTRA_SYMBOLS
 
 all:
-    $(MAKE) -C $(KERNEL_SRC) M=$(PWD) modules KCPPFLAGS="${cflags-y}"
+	$(MAKE) -C $(KERNEL_SRC) M=$(PWD) modules KCPPFLAGS="${cflags-y}"
 
 clean:
-    rm -rf *.ko *.o .*.o.d .*.ko.cmd *.mod.c *.mod .*.cmd Modules.* *.symvers *.order .tmp* *.markers */*.ko */*.o */.*.o.d */.*.ko.cmd */*.mod.c */*.mod */.*.cmd */Modules.* */*.symvers
+	rm -rf *.ko *.o .*.o.d .*.ko.cmd *.mod.c *.mod .*.cmd Modules.* *.symvers *.order .tmp* *.markers */*.ko */*.o */.*.o.d */.*.ko.cmd */*.mod.c */*.mod */.*.cmd */Modules.* */*.symvers

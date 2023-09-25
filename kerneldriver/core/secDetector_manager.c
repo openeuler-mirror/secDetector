@@ -65,16 +65,16 @@ EXPORT_SYMBOL_GPL(secDetector_module_unregister);
 
 int secDetector_module_register(struct secDetector_module *module)
 {
-        struct secDetector_workflow *wf = NULL;
-        int ret = 0;
-        int i;
-        int module_id;
-        unsigned int callback_id = 0;  
+    struct secDetector_workflow *wf = NULL;
+    int ret = 0;
+    int i;
+    int module_id;
+    unsigned int callback_id = 0;  
 
-        if (module == NULL) {
-                pr_err("[secDetector] register module is null\n");
-                return -EINVAL;
-        }
+    if (module == NULL) {
+        pr_err("[secDetector] register module is null\n");
+        return -EINVAL;
+    }
 
 	module_id = idr_alloc(&g_module_idr, module, 0, INT_MAX, GFP_KERNEL);
 	if (module_id < 0) {
@@ -92,7 +92,7 @@ int secDetector_module_register(struct secDetector_module *module)
 		if (wf->workflow_type == WORKFLOW_PRESET) {
 		    wf->workflow_func.func = preset_workflow;
 		}
-		
+
 		ret = insert_callback(wf);
 		if (ret < 0) {
 			pr_err("[secDetector] insert callback failed\n");
