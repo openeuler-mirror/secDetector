@@ -6,6 +6,7 @@ secDetector_core-objs += hook_unit/secDetector_hook_tracepoint.o
 secDetector_core-objs += hook_unit/secDetector_hook.o
 secDetector_core-objs += response_unit/secDetector_proc.o
 secDetector_core-objs += response_unit/secDetector_response.o
+secDetector_core-objs += secDetector_workflow.o
 secDetector_core-objs += secDetector_manager.o
 secDetector_core-objs += secDetector_main.o
 
@@ -21,7 +22,7 @@ endif
 export KBUILD_EXTRA_SYMBOLS
 
 all:
-	$(MAKE) -C $(KERNEL_SRC) M=$(PWD) modules KCPPFLAGS="${cflags-y}"
+    $(MAKE) -C $(KERNEL_SRC) M=$(PWD) modules KCPPFLAGS="${cflags-y}"
 
 clean:
-	rm -rf *.ko *.o .*.o.d .*.ko.cmd *.mod.c *.mod .*.cmd Modules.* *.symvers *.order .tmp* *.markers */*.ko */*.o */.*.o.d */.*.ko.cmd */*.mod.c */*.mod */.*.cmd */Modules.* */*.symvers
+    rm -rf *.ko *.o .*.o.d .*.ko.cmd *.mod.c *.mod .*.cmd Modules.* *.symvers *.order .tmp* *.markers */*.ko */*.o */.*.o.d */.*.ko.cmd */*.mod.c */*.mod */.*.cmd */Modules.* */*.symvers

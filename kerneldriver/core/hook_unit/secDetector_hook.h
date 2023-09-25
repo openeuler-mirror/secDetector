@@ -19,7 +19,7 @@
 
 #include <linux/mutex.h>
 #include <linux/tracepoint.h>
-#include <secDetector_manager.h>
+#include "secDetector_workflow_type.h"
 
 extern struct list_head secDetector_hook_array[HOOKEND];
 extern struct mutex g_hook_list_array_mutex;
@@ -49,7 +49,7 @@ extern void init_secDetector_hook(void);
 			return;                                 \
 		list_for_each_entry_rcu(workflow, &(callback_list), list) {     \
 			if (atomic_read(&workflow->enabled) && atomic_read(&workflow->module->enabled))   \
-				workflow->callback_func.func(PARAMS(args));    \
+				workflow->workflow_func.func(PARAMS(args));    \
 		}      \
 		mutex_unlock(&g_hook_list_array_mutex);     \
 	} while(0)
@@ -61,7 +61,7 @@ extern void init_secDetector_hook(void);
                 rcu_read_lock();    \
                 list_for_each_entry_rcu(workflow, &(callback_list), list) {     \
                         if (atomic_read(&workflow->enabled) && atomic_read(&workflow->module->enabled))   \
-                                workflow->callback_func.func(PARAMS(args));    \
+                                workflow->workflow_func.func(PARAMS(args));    \
                 }      \
                 rcu_read_unlock();     \
         } while(0)

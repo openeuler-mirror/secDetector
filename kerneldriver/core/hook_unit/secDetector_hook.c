@@ -18,6 +18,7 @@
 #include <linux/slab.h>
 #include <linux/workqueue.h>
 #include "secDetector_hook.h"
+#include "secDetector_hook_type.h"
 
 struct hook_list_func {
 	int type_min;
