@@ -1,13 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Technologies Co., Ltd. All rights reserved.
- * secDetector is licensed under Mulan PSL v2.
- * You can use this software according to the terms and conditions of the Mulan PSL v2.
- * You may obtain a copy of Mulan PSL v2 at:
- *          http://license.coscl.org.cn/MulanPSL2
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
- * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
- * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
- * See the Mulan PSL v2 for more details.
+ * SPDX-License-Identifier: GPL-2.0
  *
  * Author: zcfsite
  * create: 2023-09-21
@@ -38,13 +30,13 @@ static void create_file_handler(void *cb_data __attribute__ ((unused)), struct f
 
 static void write_file_handler(void *cb_data __attribute__ ((unused)), struct filename *pathname)
 {
-        do_secDetector_hook_callback(write_file, TRACEPOINT_WRITE_FILE, PARAMS(pathname));
+    do_secDetector_hook_callback(write_file, TRACEPOINT_WRITE_FILE, PARAMS(pathname));
 }
 
 
 static void create_process_handler(void *cb_data __attribute__ ((unused)), int pid)
 {
-        do_secDetector_hook_callback(create_process, TRACEPOINT_CREATE_PROCESS, PARAMS(pid));
+    do_secDetector_hook_callback(create_process, TRACEPOINT_CREATE_PROCESS, PARAMS(pid));
 }
 
 
@@ -54,21 +46,21 @@ static struct secDetector_tracepoint secDetector_tracepoint_hook_functions[] = {
 		.register_func = tracepoint_register_call(secDetector_createfile),
 		.unregister_func = tracepoint_unregister_call(secDetector_createfile),
 	},
-        {
-                .handler = write_file_handler,
-                .register_func = tracepoint_register_call(secDetector_writefile),
-                .unregister_func = tracepoint_unregister_call(secDetector_writefile),
-        },
-        {
-                .handler = create_process_handler,
-                .register_func = tracepoint_register_call(secDetector_createprocess),
-                .unregister_func = tracepoint_unregister_call(secDetector_createprocess),
-        },
-        {
-                .handler = NULL,
-                .register_func = NULL,
-                .unregister_func = NULL,
-        }
+    {
+        .handler = write_file_handler,
+        .register_func = tracepoint_register_call(secDetector_writefile),
+        .unregister_func = tracepoint_unregister_call(secDetector_writefile),
+    },
+    {
+        .handler = create_process_handler,
+        .register_func = tracepoint_register_call(secDetector_createprocess),
+        .unregister_func = tracepoint_unregister_call(secDetector_createprocess),
+    },
+    {
+        .handler = NULL,
+        .register_func = NULL,
+        .unregister_func = NULL,
+    }
 };
 
 int insert_tracepoint_hook(struct secDetector_workflow *workflow)
@@ -101,27 +93,27 @@ int insert_tracepoint_hook(struct secDetector_workflow *workflow)
 
 int delete_tracepoint_hook(struct secDetector_workflow *workflow)
 {
-        int ret = 0;
-        struct secDetector_tracepoint *tp = NULL;
+    int ret = 0;
+    struct secDetector_tracepoint *tp = NULL;
 
-        if (workflow == NULL)
-                return -1;
+    if (workflow == NULL)
+        return -1;
 
-        if (workflow->hook_type < TRACEPOINT_HOOK_START || workflow->hook_type > TRACEPOINT_HOOK_END)
-                return -1;
+    if (workflow->hook_type < TRACEPOINT_HOOK_START || workflow->hook_type > TRACEPOINT_HOOK_END)
+        return -1;
 
-        list_del_rcu(&workflow->list);
+    list_del_rcu(&workflow->list);
 	synchronize_rcu();
 
-        if (list_empty(&secDetector_hook_array[workflow->hook_type]) == 1) {
-                tp = &secDetector_tracepoint_hook_functions[workflow->hook_type - TRACEPOINT_HOOK_START];
-                if (tp == NULL || tp->register_func == NULL || tp->handler == NULL)
-                        return -1;
+    if (list_empty(&secDetector_hook_array[workflow->hook_type]) == 1) {
+        tp = &secDetector_tracepoint_hook_functions[workflow->hook_type - TRACEPOINT_HOOK_START];
+        if (tp == NULL || tp->register_func == NULL || tp->handler == NULL)
+            return -1;
 
-                ret = tp->unregister_func(tp->handler, NULL);
-        }
+        ret = tp->unregister_func(tp->handler, NULL);
+    }
 
-        return ret;
+    return ret;
 }
 
 bool tracepoint_exists(struct secDetector_workflow *workflow)
@@ -131,8 +123,8 @@ bool tracepoint_exists(struct secDetector_workflow *workflow)
 	if (workflow == NULL)
 		return false;
 
-        if (workflow->hook_type < TRACEPOINT_HOOK_START || workflow->hook_type > TRACEPOINT_HOOK_END)
-                return -1;
+    if (workflow->hook_type < TRACEPOINT_HOOK_START || workflow->hook_type > TRACEPOINT_HOOK_END)
+        return -1;
 
 	head = &secDetector_hook_array[workflow->hook_type];
 	list_for_each_entry(tmp_wf, head, list) {
