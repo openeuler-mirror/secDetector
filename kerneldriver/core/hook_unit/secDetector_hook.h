@@ -19,7 +19,7 @@
 
 #include <linux/mutex.h>
 #include <linux/tracepoint.h>
-#include <secDetector_manager.h>
+#include "secDetector_workflow_type.h"
 
 extern struct list_head secDetector_hook_array[HOOKEND];
 extern struct mutex g_hook_list_array_mutex;

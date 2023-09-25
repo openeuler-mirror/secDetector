@@ -19,6 +19,7 @@
 #include <linux/version.h>
 #include "hook_unit/secDetector_hook.h"
 #include "secDetector_manager.h"
+#include "secDetector_workflow.h"
 
 static DEFINE_IDR(g_module_idr);
 static LIST_HEAD(secDetector_module_list);
@@ -83,11 +84,15 @@ int secDetector_module_register(struct secDetector_module *module)
 
 	mutex_lock(&g_hook_list_array_mutex);
 	for (i = 0, wf = module->workflow_array; i < module->workflow_array_len; i++, wf++) {
-                if (wf == NULL) {
-                        ret = -EINVAL; 
-                        goto error;
-                }
+        if (wf == NULL) {
+            ret = -EINVAL; 
+            goto error;
+        }
 		wf->module = module;
+		if (wf->workflow_type == WORKFLOW_PRESET) {
+		    wf->workflow_func.func = preset_workflow;
+		}
+		
 		ret = insert_callback(wf);
 		if (ret < 0) {
 			pr_err("[secDetector] insert callback failed\n");

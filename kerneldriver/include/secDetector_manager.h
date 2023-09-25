@@ -17,6 +17,7 @@
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/seq_file.h>
+#include "secDetector_module_type.h"
 
 enum CALLBACKTYPE {
 	TRACEPOINT_HOOK_START,
@@ -30,37 +31,37 @@ enum CALLBACKTYPE {
 	SECDETECTOR_TIMER,
 };
 
-union callback_func {
-	void (*func)(void);
-	void (*create_file)(struct filename *);
-	void (*write_file)(struct filename *);
-	void (*create_process)(int);
-	void (*timer_func)(struct timer_list *);
-};
+// union callback_func {
+// 	void (*func)(void);
+// 	void (*create_file)(struct filename *);
+// 	void (*write_file)(struct filename *);
+// 	void (*create_process)(int);
+// 	void (*timer_func)(struct timer_list *);
+// };
 
-struct secDetector_workflow {
-	struct list_head list;
-	struct rcu_head rcu;
-	unsigned int id;
-	struct secDetector_module *module;
-	atomic_t enabled;
+// struct secDetector_workflow {
+// 	struct list_head list;
+// 	struct rcu_head rcu;
+// 	unsigned int id;
+// 	struct secDetector_module *module;
+// 	atomic_t enabled;
 
-	unsigned int hook_type;
-	int interval;
-	union callback_func callback_func;
-};
+// 	unsigned int hook_type;
+// 	int interval;
+// 	union callback_func callback_func;
+// };
 
-struct secDetector_module {
-	struct list_head list;
-	struct rcu_head rcu;
-	unsigned int id;
-	char *name;
-	struct module *kmodule;
-	atomic_t enabled;
+// struct secDetector_module {
+// 	struct list_head list;
+// 	struct rcu_head rcu;
+// 	unsigned int id;
+// 	char *name;
+// 	struct module *kmodule;
+// 	atomic_t enabled;
 
-	struct secDetector_workflow *workflow_array;
-	uint32_t workflow_array_len;
-};
+// 	struct secDetector_workflow *workflow_array;
+// 	uint32_t workflow_array_len;
+// };
 
 extern void secDetector_init_manager(void);
 extern int secDetector_module_register(struct secDetector_module *module);
