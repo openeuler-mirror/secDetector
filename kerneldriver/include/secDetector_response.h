@@ -18,8 +18,8 @@
 #include "secDetector_response_type.h"
 
 struct secdetector_response {
-	struct list_head list;
-	struct rcu_head rcu;
+    struct list_head list;
+    struct rcu_head rcu;
     unsigned int response_type;
     response_func_t response_func;
 };
