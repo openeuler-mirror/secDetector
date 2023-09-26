@@ -14,15 +14,15 @@
 
 typedef struct secDetector_workflow secDetector_workflow_t;
 struct secDetector_module {
-    struct list_head list;
-    struct rcu_head rcu;
-    unsigned int id;
-    char *name;
-    struct module *kmodule;
-    atomic_t enabled;
+	struct list_head list;
+	struct rcu_head rcu;
+	unsigned int id;
+	char *name;
+	struct module *kmodule;
+	atomic_t enabled;
 
-    secDetector_workflow_t *workflow_array;
-    uint32_t workflow_array_len;
+	secDetector_workflow_t *workflow_array;
+	uint32_t workflow_array_len;
 };
 
 #endif

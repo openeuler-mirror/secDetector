@@ -15,9 +15,9 @@
 struct hook_list_func {
 	int type_min;
 	int type_max;
-	int (*insert) (struct secDetector_workflow *);
-	int (*delete) (struct secDetector_workflow *);
-	bool (*exists) (struct secDetector_workflow *);
+	int (*insert)(struct secDetector_workflow *);
+	int (*delete)(struct secDetector_workflow *);
+	bool (*exists)(struct secDetector_workflow *);
 };
 
 static int insert_timer_callback(struct secDetector_workflow *workflow);
@@ -25,20 +25,10 @@ static int unlink_timer_callback(struct secDetector_workflow *workflow);
 static bool timer_callback_exists(struct secDetector_workflow *workflow);
 
 static struct hook_list_func hook_list_funcs[] = {
-	{
-		TRACEPOINT_HOOK_START,
-		TRACEPOINT_HOOK_END,
-		insert_tracepoint_hook,
-		delete_tracepoint_hook,
-		tracepoint_exists
-	},
-	{
-		SECDETECTOR_TIMER,
-		SECDETECTOR_TIMER,
-		insert_timer_callback,
-		unlink_timer_callback,
-		timer_callback_exists
-	}
+	{ TRACEPOINT_HOOK_START, TRACEPOINT_HOOK_END, insert_tracepoint_hook,
+	  delete_tracepoint_hook, tracepoint_exists },
+	{ SECDETECTOR_TIMER, SECDETECTOR_TIMER, insert_timer_callback,
+	  unlink_timer_callback, timer_callback_exists }
 };
 
 struct list_head secDetector_hook_array[HOOKEND];
@@ -63,14 +53,15 @@ static void do_timer_work(struct work_struct *work)
 		return;
 
 	timer = container_of(work, struct secDetector_timer, work);
-	_do_secDetector_callback(timer_func, timer->callback_list, PARAMS(&timer->timer));
-
+	_do_secDetector_callback(timer_func, timer->callback_list,
+				 PARAMS(&timer->timer));
 }
 
 static void add_secDetector_timer(struct secDetector_timer *tm);
 static void secDetector_timer_callback(struct timer_list *timer)
 {
-	struct secDetector_timer *tm = container_of(timer, struct secDetector_timer, timer);
+	struct secDetector_timer *tm =
+		container_of(timer, struct secDetector_timer, timer);
 	queue_work(system_unbound_wq, &tm->work);
 	add_secDetector_timer(tm);
 }
@@ -90,10 +81,10 @@ static bool timer_callback_exists(struct secDetector_workflow *workflow)
 	if (workflow == NULL)
 		return false;
 
-	list_for_each_entry(timer, &secDetector_timer_list, list) {
+	list_for_each_entry (timer, &secDetector_timer_list, list) {
 		if (workflow->interval != timer->interval)
 			continue;
-		list_for_each_entry(tmp_wf, &timer->callback_list, list) {
+		list_for_each_entry (tmp_wf, &timer->callback_list, list) {
 			if (tmp_wf == workflow)
 				return true;
 		}
@@ -107,8 +98,8 @@ static int insert_timer_callback(struct secDetector_workflow *workflow)
 	struct secDetector_timer *timer = NULL;
 	if (workflow == NULL)
 		return -1;
-	
-	list_for_each_entry(timer, &secDetector_timer_list, list) {
+
+	list_for_each_entry (timer, &secDetector_timer_list, list) {
 		if (workflow->interval != timer->interval) {
 			list_add_rcu(&workflow->list, &timer->callback_list);
 			return 0;
@@ -137,7 +128,7 @@ static int unlink_timer_callback(struct secDetector_workflow *workflow)
 	if (workflow == NULL)
 		return -1;
 
-	list_for_each_entry(timer, &secDetector_timer_list, list) {
+	list_for_each_entry (timer, &secDetector_timer_list, list) {
 		if (workflow->interval != timer->interval) {
 			list_del_rcu(&workflow->list);
 			synchronize_rcu();
@@ -164,7 +155,7 @@ int insert_callback(struct secDetector_workflow *workflow)
 	for (i = 0; i < ARRAY_SIZE(hook_list_funcs); i++) {
 		list_func = &hook_list_funcs[i];
 		if (workflow->hook_type >= list_func->type_min &&
-			workflow->hook_type <= list_func->type_max) {
+		    workflow->hook_type <= list_func->type_max) {
 			if (list_func->exists(workflow))
 				return -EEXIST;
 			ret = list_func->insert(workflow);
@@ -186,14 +177,13 @@ int delete_callback(struct secDetector_workflow *workflow)
 	for (i = 0; i < ARRAY_SIZE(hook_list_funcs); i++) {
 		list_func = &hook_list_funcs[i];
 		if (workflow->hook_type >= list_func->type_min &&
-			workflow->hook_type <= list_func->type_max) {
+		    workflow->hook_type <= list_func->type_max) {
 			if (!list_func->exists(workflow))
-			return 0;
-			ret = list_func->delete(workflow);
+				return 0;
+			ret = list_func->delete (workflow);
 			break;
 		}
 	}
 
 	return ret;
 }
-

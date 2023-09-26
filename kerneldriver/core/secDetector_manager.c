@@ -34,7 +34,8 @@ void secDetector_module_unregister(struct secDetector_module *module)
 		goto error;
 	}
 
-	for (i = 0, wf = module->workflow_array; i < module->workflow_array_len; i++, wf++) {
+	for (i = 0, wf = module->workflow_array; i < module->workflow_array_len;
+	     i++, wf++) {
 		if (wf == NULL) {
 			goto error;
 		}
@@ -43,30 +44,29 @@ void secDetector_module_unregister(struct secDetector_module *module)
 			pr_err("[secDetector] delete callback failed\n");
 			goto error;
 		}
-		
 	}
 
 error:
 	list_del_rcu(&module->list);
 	synchronize_rcu();
 	mutex_unlock(&g_hook_list_array_mutex);
-	
+
 	return;
 }
 EXPORT_SYMBOL_GPL(secDetector_module_unregister);
 
 int secDetector_module_register(struct secDetector_module *module)
 {
-    struct secDetector_workflow *wf = NULL;
-    int ret = 0;
-    int i;
-    int module_id;
-    unsigned int callback_id = 0;  
+	struct secDetector_workflow *wf = NULL;
+	int ret = 0;
+	int i;
+	int module_id;
+	unsigned int callback_id = 0;
 
-    if (module == NULL) {
-        pr_err("[secDetector] register module is null\n");
-        return -EINVAL;
-    }
+	if (module == NULL) {
+		pr_err("[secDetector] register module is null\n");
+		return -EINVAL;
+	}
 
 	module_id = idr_alloc(&g_module_idr, module, 0, INT_MAX, GFP_KERNEL);
 	if (module_id < 0) {
@@ -75,14 +75,15 @@ int secDetector_module_register(struct secDetector_module *module)
 	}
 
 	mutex_lock(&g_hook_list_array_mutex);
-	for (i = 0, wf = module->workflow_array; i < module->workflow_array_len; i++, wf++) {
-        if (wf == NULL) {
-            ret = -EINVAL; 
-            goto error;
-        }
+	for (i = 0, wf = module->workflow_array; i < module->workflow_array_len;
+	     i++, wf++) {
+		if (wf == NULL) {
+			ret = -EINVAL;
+			goto error;
+		}
 		wf->module = module;
 		if (wf->workflow_type == WORKFLOW_PRESET) {
-		    wf->workflow_func.func = preset_workflow;
+			wf->workflow_func.func = preset_workflow;
 		}
 
 		ret = insert_callback(wf);
