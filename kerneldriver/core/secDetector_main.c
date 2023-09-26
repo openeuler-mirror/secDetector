@@ -6,7 +6,6 @@
  * Description: secDetector main entry.
  */
 
-
 #include <linux/module.h>
 #include <linux/proc_fs.h>
 #include "secDetector_manager.h"

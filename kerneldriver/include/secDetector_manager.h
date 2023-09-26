@@ -3,7 +3,6 @@
  *
  */
 
-
 #ifndef SECDETECTOR_MANAGER_H
 #define SECDETECTOR_MANAGER_H
 

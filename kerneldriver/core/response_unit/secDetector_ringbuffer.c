@@ -26,12 +26,11 @@
 #define RINGBUF_CREATE_FLAG_MASK (BPF_F_NUMA_NODE)
 
 /* non-mmap()'able part of ringbuf (everything up to consumer page) */
-#define RINGBUF_PGOFF \
-	(offsetof(struct ringbuf, consumer_pos) >> PAGE_SHIFT)
+#define RINGBUF_PGOFF (offsetof(struct ringbuf, consumer_pos) >> PAGE_SHIFT)
 /* consumer page and producer page */
 #define RINGBUF_POS_PAGES 2
 
-#define RINGBUF_MAX_RECORD_SZ (UINT_MAX/4)
+#define RINGBUF_MAX_RECORD_SZ (UINT_MAX / 4)
 
 /* Maximum size of ring buffer area is limited by 32-bit page offset within
  * record header, counted in pages. Reserve 8 bits for extensibility, and take
@@ -39,7 +38,7 @@
  * non-mmap()'able parts. This gives 64GB limit, which seems plenty for single
  * ring buffer.
  */
-#define RINGBUF_MAX_DATA_SZ \
+#define RINGBUF_MAX_DATA_SZ                                                    \
 	(((1ULL << 24) - RINGBUF_POS_PAGES - RINGBUF_PGOFF) * PAGE_SIZE)
 
 struct ringbuf {
@@ -72,8 +71,8 @@ static unsigned long g_isopen;
 
 static struct ringbuf *ringbuf_area_alloc(size_t data_sz, int numa_node)
 {
-	const gfp_t flags = GFP_KERNEL | __GFP_RETRY_MAYFAIL | __GFP_NOWARN |
-			    __GFP_ZERO;
+	const gfp_t flags =
+		GFP_KERNEL | __GFP_RETRY_MAYFAIL | __GFP_NOWARN | __GFP_ZERO;
 	int nr_meta_pages = RINGBUF_PGOFF + RINGBUF_POS_PAGES;
 	int nr_data_pages = data_sz >> PAGE_SHIFT;
 	int nr_pages = nr_meta_pages + nr_data_pages;
@@ -118,8 +117,8 @@ static struct ringbuf *ringbuf_area_alloc(size_t data_sz, int numa_node)
 			pages[nr_data_pages + i] = page;
 	}
 
-	rb = vmap(pages, nr_meta_pages + 2 * nr_data_pages,
-		  VM_MAP | VM_USERMAP, PAGE_KERNEL);
+	rb = vmap(pages, nr_meta_pages + 2 * nr_data_pages, VM_MAP | VM_USERMAP,
+		  PAGE_KERNEL);
 	if (rb) {
 		kmemleak_not_leak(pages);
 		rb->pages = pages;
@@ -189,8 +188,7 @@ static unsigned long ringbuf_avail_data_sz(struct ringbuf *rb)
  * restore struct ringbuf * from record pointer. This page offset is
  * stored at offset 4 of record metadata header.
  */
-static size_t ringbuf_rec_pg_off(struct ringbuf *rb,
-				     struct ringbuf_hdr *hdr)
+static size_t ringbuf_rec_pg_off(struct ringbuf *rb, struct ringbuf_hdr *hdr)
 {
 	return ((void *)hdr - (void *)rb) >> PAGE_SHIFT;
 }
@@ -198,13 +196,12 @@ static size_t ringbuf_rec_pg_off(struct ringbuf *rb,
 /* Given pointer to ring buffer record header, restore pointer to struct
  * ringbuf itself by using page offset stored at offset 4
  */
-static struct ringbuf *
-ringbuf_restore_from_rec(struct ringbuf_hdr *hdr)
+static struct ringbuf *ringbuf_restore_from_rec(struct ringbuf_hdr *hdr)
 {
 	unsigned long addr = (unsigned long)(void *)hdr;
 	unsigned long off = (unsigned long)hdr->pg_off << PAGE_SHIFT;
 
-	return (void*)((addr & PAGE_MASK) - off);
+	return (void *)((addr & PAGE_MASK) - off);
 }
 
 static void *__ringbuf_reserve(struct ringbuf *rb, u64 size)
@@ -285,7 +282,8 @@ static int ringbuffer_mmap(struct file *flip, struct vm_area_struct *vma)
 {
 	if (vma->vm_flags & VM_WRITE) {
 		/* allow writable mapping for the consumer_pos only */
-		if (vma->vm_pgoff != 0 || vma->vm_end - vma->vm_start != PAGE_SIZE)
+		if (vma->vm_pgoff != 0 ||
+		    vma->vm_end - vma->vm_start != PAGE_SIZE)
 			return -EPERM;
 	} else {
 		vma->vm_flags &= ~VM_MAYWRITE;
@@ -294,7 +292,8 @@ static int ringbuffer_mmap(struct file *flip, struct vm_area_struct *vma)
 	return remap_vmalloc_range(vma, g_rb, vma->vm_pgoff + RINGBUF_PGOFF);
 }
 
-static __poll_t ringbuffer_poll(struct file *filp, struct poll_table_struct *pts)
+static __poll_t ringbuffer_poll(struct file *filp,
+				struct poll_table_struct *pts)
 {
 	poll_wait(filp, &g_rb->waitq, pts);
 
@@ -326,7 +325,8 @@ static const struct file_operations dev_fops = {
 	.owner = THIS_MODULE,
 };
 
-static int ringbuf_output(struct ringbuf *rb, const void *data, u64 size, u64 flags)
+static int ringbuf_output(struct ringbuf *rb, const void *data, u64 size,
+			  u64 flags)
 {
 	void *rec;
 
@@ -369,7 +369,8 @@ int __init secDetector_ringbuf_dev_init(void)
 		goto error_class_create;
 	}
 
-	class_dev = device_create(class, NULL, MKDEV((unsigned int)major, 1), NULL, MODULE_DEVICE);
+	class_dev = device_create(class, NULL, MKDEV((unsigned int)major, 1),
+				  NULL, MODULE_DEVICE);
 	if (unlikely(IS_ERR(class_dev))) {
 		ret = PTR_ERR(class_dev);
 		goto error_device_create;

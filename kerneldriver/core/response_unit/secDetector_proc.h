@@ -20,8 +20,9 @@ typedef struct secDetector_log {
 	bool inflag;
 } s_secDetector_log;
 
-extern int __init secDetector_init_log(struct proc_dir_entry *parent, size_t log_size);
+extern int __init secDetector_init_log(struct proc_dir_entry *parent,
+				       size_t log_size);
 extern void secDetector_destroy_log(void);
-extern int write_log(const char*buf, unsigned int buf_len);
+extern int write_log(const char *buf, unsigned int buf_len);
 
 #endif

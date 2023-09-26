@@ -15,7 +15,8 @@ static const response_func_t response_units[NR_RESPONSE] = {
 	[RESPONSE_REPORT] = secdetector_report,
 };
 
-void notrace secdetector_respond(unsigned int response_type, response_data_t *data)
+void notrace secdetector_respond(unsigned int response_type,
+				 response_data_t *data)
 {
 	if (response_type >= NR_RESPONSE)
 		return;
@@ -31,7 +32,9 @@ void notrace secdetector_report(response_data_t *log)
 	if (!log || !log->report_data || !log->report_data->text)
 		return;
 
-	ret = secDetector_ringbuf_output(log->report_data->text, log->report_data->len, BPF_RB_FORCE_WAKEUP);
+	ret = secDetector_ringbuf_output(log->report_data->text,
+					 log->report_data->len,
+					 BPF_RB_FORCE_WAKEUP);
 	if (ret != 0)
 		pr_warn("write ringbuf failed\n");
 }
