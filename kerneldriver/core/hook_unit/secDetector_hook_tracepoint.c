@@ -22,48 +22,20 @@ struct secDetector_tracepoint {
 	UNREGFUNC unregister_func;
 };
 
-static void create_file_handler(void *cb_data __attribute__((unused)),
-				struct filename *pathname)
+static void file_event_handler(void *cb_data __attribute__((unused)),
+				struct secDetector_file *file, int flag)
 {
-	do_secDetector_hook_callback(create_file, TRACEPOINT_CREATE_FILE,
-				     PARAMS(pathname));
-}
-
-static void write_file_handler(void *cb_data __attribute__((unused)),
-			       struct filename *pathname)
-{
-	do_secDetector_hook_callback(write_file, TRACEPOINT_WRITE_FILE,
-				     PARAMS(pathname));
-}
-
-static void create_process_handler(void *cb_data __attribute__((unused)),
-				   int pid)
-{
-	do_secDetector_hook_callback(create_process, TRACEPOINT_CREATE_PROCESS,
-				     PARAMS(pid));
+	do_secDetector_hook_callback(file_event, TRACEPOINT_FILE_EVENT,
+				     PARAMS(file, flag));
 }
 
 static struct secDetector_tracepoint secDetector_tracepoint_hook_functions[] = {
 	{
-		.handler = create_file_handler,
+		.handler = file_event_handler,
 		.register_func =
-			tracepoint_register_call(secDetector_createfile),
+			tracepoint_register_call(secDetector_chkfsevent),
 		.unregister_func =
-			tracepoint_unregister_call(secDetector_createfile),
-	},
-	{
-		.handler = write_file_handler,
-		.register_func =
-			tracepoint_register_call(secDetector_writefile),
-		.unregister_func =
-			tracepoint_unregister_call(secDetector_writefile),
-	},
-	{
-		.handler = create_process_handler,
-		.register_func =
-			tracepoint_register_call(secDetector_createprocess),
-		.unregister_func =
-			tracepoint_unregister_call(secDetector_createprocess),
+			tracepoint_unregister_call(secDetector_chkfsevent),
 	},
 	{
 		.handler = NULL,

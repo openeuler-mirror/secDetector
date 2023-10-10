@@ -7,6 +7,8 @@
  */
 #ifndef SECDETECTOR_WORKFLOW_TYPE_H
 #define SECDETECTOR_WORKFLOW_TYPE_H
+
+#include <linux/secDetector.h>
 #include "secDetector_hook_type.h"
 #include "secDetector_collect_type.h"
 #include "secDetector_analyze_type.h"
@@ -20,9 +22,7 @@ enum WORKFLOW_TYPE {
 
 union workflow_func {
 	void (*func)(void);
-	void (*create_file)(struct filename *);
-	void (*write_file)(struct filename *);
-	void (*create_process)(int);
+	void (*file_event)(struct secDetector_file *, int);
 	void (*timer_func)(struct timer_list *);
 };
 
