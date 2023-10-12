@@ -8,4 +8,8 @@
 #ifndef SECDETECTOR_ANALYZE_H
 #define SECDETECTOR_ANALYZE_H
 #include "secDetector_analyze_type.h"
+
+extern analyze_func_t analyze_units[NR_ANALYZE];
+
+void free_analyze_status_data(analyze_status_t *as);
 #endif

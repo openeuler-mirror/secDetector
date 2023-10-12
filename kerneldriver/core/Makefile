@@ -4,6 +4,10 @@ obj-m := secDetector_core.o
 
 secDetector_core-objs += hook_unit/secDetector_hook_tracepoint.o
 secDetector_core-objs += hook_unit/secDetector_hook.o
+secDetector_core-objs += collect_unit/secDetector_collect.o
+secDetector_core-objs += collect_unit/secDetector_function_switch.o
+secDetector_core-objs += analyze_unit/secDetector_analyze.o
+secDetector_core-objs += analyze_unit/secDetector_save_check.o
 secDetector_core-objs += response_unit/secDetector_proc.o
 secDetector_core-objs += response_unit/secDetector_response.o
 secDetector_core-objs += response_unit/secDetector_ringbuffer.o

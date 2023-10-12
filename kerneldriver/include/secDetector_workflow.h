@@ -12,5 +12,5 @@
 #include "secDetector_response.h"
 #include "secDetector_workflow_type.h"
 
-void preset_workflow(void);
+void preset_workflow(secDetector_workflow_t *wf);
 #endif

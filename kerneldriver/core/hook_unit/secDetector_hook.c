@@ -155,7 +155,7 @@ int insert_callback(struct secDetector_workflow *workflow)
 	for (i = 0; i < ARRAY_SIZE(hook_list_funcs); i++) {
 		list_func = &hook_list_funcs[i];
 		if (workflow->hook_type >= list_func->type_min &&
-		    workflow->hook_type <= list_func->type_max) {
+			workflow->hook_type <= list_func->type_max) {
 			if (list_func->exists(workflow))
 				return -EEXIST;
 			ret = list_func->insert(workflow);
@@ -177,7 +177,7 @@ int delete_callback(struct secDetector_workflow *workflow)
 	for (i = 0; i < ARRAY_SIZE(hook_list_funcs); i++) {
 		list_func = &hook_list_funcs[i];
 		if (workflow->hook_type >= list_func->type_min &&
-		    workflow->hook_type <= list_func->type_max) {
+			workflow->hook_type <= list_func->type_max) {
 			if (!list_func->exists(workflow))
 				return 0;
 			ret = list_func->delete (workflow);
