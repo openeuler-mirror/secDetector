@@ -1,9 +1,5 @@
 # make secDetector_core
 
-# obj-m := secDetector_cases.o
-# secDetector_cases-objs += memory_corruption/secDetector_memory_corruption.o memory_corruption/secDetector_mc_kmodule_list.o
-
-#secDetector_cases-objs := secDetector_memory_corruption.o
 obj-m += secDetector_memory_corruption.o
 
 secDetector_memory_corruption-objs := memory_corruption/secDetector_memory_corruption.o memory_corruption/secDetector_mc_kmodule_list.o
@@ -19,7 +15,6 @@ EXTRA_CFLAGS += -Wall -Werror
 ifndef KDIR
 KDIR=$(KERNEL_SRC)
 endif
-# export KBUILD_EXTRA_SYMBOLS
 
 all:
 	$(MAKE) -C $(KERNEL_SRC) M=$(PWD) modules KCPPFLAGS="${cflags-y}"
