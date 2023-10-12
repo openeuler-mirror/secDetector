@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package data_comm;
+
+// The message type
+message Message {
+  string text = 1;
+}
+
+message SubscribeRequest {
+  int32 topic = 1;
+}
+
+message UnSubscribeRequest {
+  int32 topic = 1;
+}
+
+message PublishRequest {
+  int32 topic = 1;
+  string data = 2;
+}
+// The service definition
+service SubManager {
+  rpc Subscribe (SubscribeRequest) returns (stream Message) {}
+  rpc UnSubscribe (UnSubscribeRequest) returns (Message) {}
+  rpc Publish (PublishRequest) returns (Message) {}
+}
+

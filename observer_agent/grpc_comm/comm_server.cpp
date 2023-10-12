@@ -20,26 +20,58 @@ using grpc::Server;
 using grpc::ServerBuilder;
 using grpc::ServerContext;
 using grpc::ServerWriter;
-using pubsub::Message;
-using pubsub::PubSub;
-using pubsub::SubscribeRequest;
+using data_comm::Message;
+using data_comm::SubManager;
+using data_comm::SubscribeRequest;
+using data_comm::UnSubscribeRequest;
+using data_comm::PublishRequest;
 
-class PubSubServiceImpl final : public PubSub::Service {
+class PubSubServiceImpl final : public SubManager::Service {
  public:
   grpc::Status Subscribe(ServerContext* context, const SubscribeRequest* request,
                          ServerWriter<Message>* writer) override {
     // Here you would normally check the topic and write the appropriate messages.
     // For simplicity, we're just writing a single message here.
-    std::string cli_topic = request->topic();
+    int cli_topic = request->topic();
+    // ToDo: somebody topic
+    subscribers_[cli_topic].push_back(writer);
+
+    // ToDo: add extra check or feature code
     Message msg;
-    if (cli_topic == "chkmal") {
-        msg.set_text("our probe data");
-    } else {
-        msg.set_text("Hello, world!");
-    }
+    msg.set_text("topic: " + std::to_string(cli_topic) + " Subscribe success!");
     writer->Write(msg);
+    
+    // ToDo: set some condition to break loop
+    while (1) {}
     return grpc::Status::OK;
   }
+
+  grpc::Status Publish(ServerContext* context, const PublishRequest* request, 
+		      Message* response) override {
+    int cli_topic = request->topic();
+    std::string cli_data = request->data();
+
+    if (subscribers_.find(cli_topic) != subscribers_.end()) {
+        for (auto& subscriber : subscribers_[cli_topic]) {
+	    Message msg;
+	    msg.set_text(cli_data);
+	    subscriber->Write(msg);
+	}
+    }
+    return grpc::Status::OK;
+  }
+
+  grpc::Status UnSubscribe(ServerContext* context, const UnSubscribeRequest* request,
+                           Message* response) override {
+    int cli_topic = request->topic();
+    //subscribers_[topic].pop_front(writer);
+
+    // ToDo: add extra check or feature code
+    response->set_text("topic: " + std::to_string(cli_topic) + " UnSubscribe success!");
+    return grpc::Status::OK;
+  }
+ private:
+  std::unordered_map<int, std::vector<ServerWriter<Message>*>> subscribers_;
 };
 
 void RunServer() {
