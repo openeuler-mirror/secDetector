@@ -122,6 +122,8 @@ static int analyze_save_check_normal(struct list_head *collect_data_list, analyz
 				break;
 		}
 		if (measure_value != analyze_status_data->sc_data.data[data_index]) {
+			pr_debug("[save_check]%s: original: %llx; now: %llx.!\n",
+					cd->name, analyze_status_data->sc_data.data[data_index], measure_value);
 			response_arrays[response_array_index] = kmalloc(strlen(cd->name) + REPORT_MORE_CHAR_LEN, GFP_KERNEL);
 			if (response_arrays[response_array_index] == NULL) {
 				pr_err("kmalloc failed");
@@ -131,7 +133,7 @@ static int analyze_save_check_normal(struct list_head *collect_data_list, analyz
 			strcpy(response_arrays[response_array_index], "[save_check]");
 			//应该有 workflow的名字
 			strncat(response_arrays[response_array_index], cd->name, strlen(cd->name));
-			strcat(response_arrays[response_array_index],": original:");
+			strcat(response_arrays[response_array_index],": original: ");
 			sprintf(int_str, "%llx", analyze_status_data->sc_data.data[data_index]);
 			strncat(response_arrays[response_array_index], int_str, strlen(int_str));
 			strcat(response_arrays[response_array_index],"; now: ");
@@ -142,6 +144,7 @@ static int analyze_save_check_normal(struct list_head *collect_data_list, analyz
 			response_data_char_len += strlen(response_arrays[response_array_index]);
 			ret = RESPONSE_REPORT;
 			response_array_index ++;
+			analyze_status_data->sc_data.data[data_index] = measure_value;
 		}
 		data_index ++;
 	}
