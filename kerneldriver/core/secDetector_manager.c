@@ -35,7 +35,7 @@ void secDetector_module_unregister(struct secDetector_module *module)
 	}
 
 	for (i = 0, wf = module->workflow_array; i < module->workflow_array_len;
-	     i++, wf++) {
+		 i++, wf++) {
 		if (wf == NULL) {
 			goto error;
 		}
@@ -43,6 +43,11 @@ void secDetector_module_unregister(struct secDetector_module *module)
 		if (ret < 0) {
 			pr_err("[secDetector] delete callback failed\n");
 			goto error;
+		}
+		// workflow在被卸载的时候，需要释放analyze status等申请的内存,特别是使用默认的response list。
+		free_analyze_status_data(&wf->analyze_status);
+		if (wf->response_array_len == 0) {
+			kfree(wf->response_array);
 		}
 	}
 
@@ -54,6 +59,40 @@ error:
 	return;
 }
 EXPORT_SYMBOL_GPL(secDetector_module_unregister);
+
+static void secDetector_collect_analyze_response_unit_padding(struct secDetector_workflow *wf)
+{
+	int i;
+	struct secDetector_collect *sc = wf->collect_array;
+	struct secDetector_response *sr = wf->response_array;
+	
+	for (i = 0; i < wf->collect_array_len; i++) {
+		if (sc[i].collect_type < COLLECT_CUSTOMIZATION)
+			sc[i].collect_func = collect_units[sc[i].collect_type];
+	}
+
+	if (wf->analyze_type < ANALYZE_CUSTOMIZATION) {
+		wf->analyze_func = analyze_units[wf->analyze_type];
+	}
+
+	if (wf->response_array_len == 0) {// 使用默认response list
+		sr = kmalloc(sizeof(struct secDetector_response) * NR_RESPONSE, GFP_KERNEL);
+		if (sr == NULL) {
+			pr_err("kmalloc failed");
+			return;
+		}
+		for (i = 0; i < NR_RESPONSE; i++) {
+			sr[i].response_type = i;
+			sr[i].response_func = response_units[i];
+		}
+	} else {// 自定义response list
+		for (i = 0; i < wf->response_array_len; i++) {
+			if (sr[i].response_type < RESPONSE_CUSTOMIZATION)
+			sr[i].response_func = response_units[sr[i].response_type];
+		}
+	}
+
+}
 
 int secDetector_module_register(struct secDetector_module *module)
 {
@@ -76,14 +115,15 @@ int secDetector_module_register(struct secDetector_module *module)
 
 	mutex_lock(&g_hook_list_array_mutex);
 	for (i = 0, wf = module->workflow_array; i < module->workflow_array_len;
-	     i++, wf++) {
+		 i++, wf++) {
 		if (wf == NULL) {
 			ret = -EINVAL;
 			goto error;
 		}
 		wf->module = module;
 		if (wf->workflow_type == WORKFLOW_PRESET) {
-			wf->workflow_func.func = preset_workflow;
+			wf->workflow_func.func_wf = preset_workflow;
+			secDetector_collect_analyze_response_unit_padding(wf);
 		}
 
 		ret = insert_callback(wf);

@@ -19,11 +19,12 @@ enum WORKFLOW_TYPE {
 	WORKFLOW_CUSTOMIZATION,
 	WORKFLOW_PRESET,
 };
-
+struct secDetector_workflow;
 union workflow_func {
 	void (*func)(void);
 	void (*file_event)(struct secDetector_file *, int);
-	void (*timer_func)(struct timer_list *);
+	void (*timer_func)(struct secDetector_workflow *, struct timer_list *);
+	void (*func_wf)(struct secDetector_workflow *);
 };
 
 typedef struct secDetector_module secDetector_module_t;
@@ -49,8 +50,12 @@ typedef struct secDetector_workflow {
 	analyze_func_t analyze_func;
 
 	//response
-	struct secdetector_response *response_array;
+	struct secDetector_response *response_array;
 	uint32_t response_array_len;
+
+	//intermediate status
+	analyze_status_t analyze_status;
+
 
 } secDetector_workflow_t;
 
