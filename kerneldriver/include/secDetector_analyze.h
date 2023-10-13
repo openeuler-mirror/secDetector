@@ -11,5 +11,5 @@
 
 extern analyze_func_t analyze_units[NR_ANALYZE];
 
-void free_analyze_status_data(analyze_status_t *as);
+void free_analyze_status_data(analyze_status_t *analyze_status_data);
 #endif
