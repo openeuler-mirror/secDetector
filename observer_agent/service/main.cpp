@@ -22,20 +22,17 @@
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <syslog.h>
 
 static volatile bool exiting = false;
 static void sig_handler(int sig) { exiting = true; }
 
-static int ringbuf_cb(void *text, size_t len) {
-    if (len != 0) {
-        char *buf = (char *)calloc(1, len + 1);
-        if (!buf) {
-            return -ENOMEM;
-        }
-        memcpy(buf, text, len);
-        /* TODO: you can add function there */
-        free(buf);
-    }
+static int ringbuf_cb(struct response_rb_entry *entry, size_t entry_size) {
+    if (entry == NULL || entry_size <= sizeof(struct response_rb_entry))
+        return -EINVAL;   
+
+    syslog(LOG_INFO, "type:%d, text:%s\n", entry->type, entry->text);
+    /* TODO: you can add function there */
     return 0;
 }
 
@@ -58,7 +55,7 @@ int main() {
     }
 
     while (!exiting) {
-        secDetector_ringbuf_poll(ringbuf_cb);
+        secDetector_ringbuf_poll((poll_cb)ringbuf_cb);
     }
 
     secDetector_ringbuf_detach();
