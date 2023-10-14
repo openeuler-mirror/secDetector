@@ -15,7 +15,13 @@
  */
 #ifndef SECDETECTOR_OBSERVER_AGENT_RINGBUFFER_H
 #define SECDETECTOR_OBSERVER_AGENT_RINGBUFFER_H
+#include <sys/types.h>
+
 typedef int (*poll_cb)(void *sample, size_t len);
+struct response_rb_entry {
+	int type;
+	char text[];
+};
 
 extern int secDetector_ringbuf_attach(void);
 extern void secDetector_ringbuf_detach(void);

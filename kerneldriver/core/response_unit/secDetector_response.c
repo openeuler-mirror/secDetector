@@ -12,6 +12,11 @@
 #include "secDetector_proc.h"
 #include "secDetector_ringbuffer.h"
 
+struct response_rb_entry {
+	int type;
+	char text[];
+};
+
 response_func_t response_units[NR_RESPONSE] = {
 	[RESPONSE_OK] = secDetector_ok,
 	[RESPONSE_REPORT] = secdetector_report,
@@ -35,15 +40,25 @@ void notrace secDetector_ok(response_data_t *data)
 void notrace secdetector_report(response_data_t *log)
 {
 	int ret;
+	struct response_rb_entry *rb_entry;
+	size_t entry_size;
 
-	if (!log || !log->report_data.text)
+	if (!log || !log->report_data.text || log->report_data.len == 0)
 		return;
 
-	ret = secDetector_ringbuf_output(log->report_data.text,
-					 log->report_data.len,
+	entry_size = sizeof(int) + log->report_data.len;
+	if (entry_size < sizeof(int) || entry_size < log->report_data.len)
+		return;
+
+	rb_entry = kzalloc(entry_size, GFP_KERNEL);
+	if (!rb_entry)
+		return;
+
+	ret = secDetector_ringbuf_output(rb_entry, entry_size,
 					 BPF_RB_FORCE_WAKEUP);
 	if (ret != 0)
 		pr_warn("write ringbuf failed\n");
+	free(rb_entry);
 }
 EXPORT_SYMBOL_GPL(secdetector_report);
 
@@ -59,20 +74,17 @@ void notrace secDetector_proc_report(response_data_t *log)
 }
 EXPORT_SYMBOL_GPL(secDetector_proc_report);
 
-
-
-
 void free_response_data_no_rd(uint32_t repsonse_id, response_data_t *rd)
 {
 	if (rd == NULL)
 		return;
 	switch (repsonse_id) {
-		case RESPONSE_REPORT:
-			if (rd->report_data.len != 0 && rd->report_data.text != NULL)
-				kfree(rd->report_data.text);
-			break;
-		default:
-			break;
+	case RESPONSE_REPORT:
+		if (rd->report_data.len != 0 && rd->report_data.text != NULL)
+			kfree(rd->report_data.text);
+		break;
+	default:
+		break;
 	}
 }
 
@@ -81,13 +93,13 @@ void free_response_data(uint32_t repsonse_id, response_data_t *rd)
 	if (rd == NULL)
 		return;
 	switch (repsonse_id) {
-		case RESPONSE_REPORT:
-			if (rd->report_data.len != 0 && rd->report_data.text != NULL) {
-				kfree(rd->report_data.text);
-				kfree(rd);
-			}
-			break;
-		default:
-			break;
+	case RESPONSE_REPORT:
+		if (rd->report_data.len != 0 && rd->report_data.text != NULL) {
+			kfree(rd->report_data.text);
+			kfree(rd);
+		}
+		break;
+	default:
+		break;
 	}
 }

@@ -18,6 +18,7 @@ enum RESPONSE_TYPE {
 };
 
 struct response_report_data {
+	int type;
 	char *text;
 	size_t len;
 };
