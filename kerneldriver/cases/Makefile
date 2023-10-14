@@ -16,6 +16,9 @@ ifndef KDIR
 KDIR=$(KERNEL_SRC)
 endif
 
+KBUILD_EXTRA_SYMBOLS += $(PWD)/../core/Module.symvers
+export KBUILD_EXTRA_SYMBOLS
+
 all:
 	$(MAKE) -C $(KERNEL_SRC) M=$(PWD) modules KCPPFLAGS="${cflags-y}"
 

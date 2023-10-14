@@ -58,7 +58,7 @@ void notrace secdetector_report(response_data_t *log)
 					 BPF_RB_FORCE_WAKEUP);
 	if (ret != 0)
 		pr_warn("write ringbuf failed\n");
-	free(rb_entry);
+	kfree(rb_entry);
 }
 EXPORT_SYMBOL_GPL(secdetector_report);
 

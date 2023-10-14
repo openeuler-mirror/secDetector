@@ -42,7 +42,7 @@ extern void init_secDetector_hook(void);
 		list_for_each_entry_rcu (workflow, &(callback_list), list) {   \
 			if (atomic_read(&workflow->enabled) &&                 \
 			    atomic_read(&workflow->module->enabled))           \
-				workflow->workflow_func.func(workflow, PARAMS(args));    \
+				workflow->workflow_func.func(PARAMS(args));    \
 		}                                                              \
 		mutex_unlock(&g_hook_list_array_mutex);                        \
 	} while (0)
@@ -55,7 +55,7 @@ extern void init_secDetector_hook(void);
 		list_for_each_entry_rcu (workflow, &(callback_list), list) {   \
 			if (atomic_read(&workflow->enabled) &&                 \
 			    atomic_read(&workflow->module->enabled))           \
-				workflow->workflow_func.func(workflow, PARAMS(args));    \
+				workflow->workflow_func.func(PARAMS(args));    \
 		}                                                              \
 		rcu_read_unlock();                                             \
 	} while (0)
