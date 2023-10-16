@@ -22,9 +22,8 @@ enum WORKFLOW_TYPE {
 struct secDetector_workflow;
 union workflow_func {
 	void (*func)(void);
-	void (*file_event)(struct secDetector_file *, int);
-	//void (*timer_func)(struct secDetector_workflow *, struct timer_list *);
-	void (*timer_func)(struct timer_list *);
+	void (*file_event)(struct secDetector_workflow *, struct secDetector_file *, int);
+	void (*timer_func)(struct secDetector_workflow *, struct timer_list *);
 	void (*func_wf)(struct secDetector_workflow *);
 };
 
