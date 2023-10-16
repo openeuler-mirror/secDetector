@@ -39,7 +39,10 @@ class PubSubServiceImpl final : public SubManager::Service {
     // ToDo: add extra check or feature code
     Message msg;
     msg.set_text("topic: " + std::to_string(cli_topic) + " Subscribe success!");
-    writer->Write(msg);
+    if (!writer->Write(msg)) {
+        std::cerr << "Failed to write the initial message" << std::endl;
+        return grpc::Status(grpc::StatusCode::INTERNAL, "Failed to write the message");
+    }
     
     // ToDo: set some condition to break loop
     while (1) {}
@@ -55,7 +58,10 @@ class PubSubServiceImpl final : public SubManager::Service {
         for (auto& subscriber : subscribers_[cli_topic]) {
 	    Message msg;
 	    msg.set_text(cli_data);
-	    subscriber->Write(msg);
+            if (!subscriber->Write(msg)) {
+                std::cerr << "Failed to write to a subscriber" << std::endl;
+                return grpc::Status(grpc::StatusCode::INTERNAL, "Failed to write the message");
+            }
 	}
     }
     return grpc::Status::OK;
