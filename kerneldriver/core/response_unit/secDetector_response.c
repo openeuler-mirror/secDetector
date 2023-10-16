@@ -54,6 +54,8 @@ void notrace secdetector_report(response_data_t *log)
 	if (!rb_entry)
 		return;
 
+	rb_entry->type = log->report_data.type;
+	memcpy(rb_entry->text, log->report_data.text, log->report_data.len);
 	ret = secDetector_ringbuf_output(rb_entry, entry_size,
 					 BPF_RB_FORCE_WAKEUP);
 	if (ret != 0)
