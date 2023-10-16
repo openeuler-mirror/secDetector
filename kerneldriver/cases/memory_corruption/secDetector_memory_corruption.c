@@ -35,11 +35,13 @@ static struct secDetector_workflow workflow_array[] = {
 	{
 		.workflow_type = WORKFLOW_CUSTOMIZATION,
 		.workflow_func.func = check_all_watching_memory,
+		.hook_type = SECDETECTOR_TIMER,
 		.interval = TIME_INTERVAL,
 		.enabled = ATOMIC_INIT(true)
 	},
 	{
 		.workflow_type = WORKFLOW_PRESET,
+		.hook_type = SECDETECTOR_TIMER,
 		.collect_array = collect_array,
 		.analyze_type = ANALYZE_PRESET_SAVE_CHECK,
 		.interval = TIME_INTERVAL,
@@ -59,9 +61,9 @@ static int __init register_secDetector_mc(void)
 	int ret;
 	ret = secDetector_module_register(&mc_module);
 	if (ret < 0)
-		pr_err("register event failed");
+		pr_err("[secDetector case memory corruption] register event failed");
 
-	pr_debug("[secDetector case memory corruption] register success\n");
+	pr_info("[secDetector case memory corruption] register success\n");
 	return ret;
 }
 
@@ -71,7 +73,7 @@ static void __exit unregister_secDetector_mc(void)
 	(void)secDetector_module_unregister(&mc_module);
 	mutex_unlock(&case_mc_mutex);
 
-	pr_debug("[secDetector case memory corruption] unregister success\n");
+	pr_info("[secDetector case memory corruption] unregister success\n");
 }
 
 module_init(register_secDetector_mc);
