@@ -23,6 +23,7 @@ extern void notrace secdetector_respond(unsigned int response_type,
 extern void notrace secdetector_report(response_data_t *log);
 
 void notrace secDetector_ok(response_data_t *data);
+void notrace secDetector_kill(response_data_t *data);
 
 // support max 4095 bytes,
 extern void notrace secDetector_proc_report(response_data_t *log);
