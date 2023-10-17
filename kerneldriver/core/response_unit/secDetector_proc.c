@@ -60,14 +60,14 @@ static int check_and_out_log_fifo(void)
 	unsigned int avail_len;
 	s_log_data log = { 0, NULL };
 
-	avail_len = kfifo_len(&g_secDetector_log_fifo->log_fifo);
+	avail_len = kfifo_avail(&g_secDetector_log_fifo->log_fifo);
 	while (avail_len == 0) {
 		ret = kfifo_out_spinlocked(
 			&g_secDetector_log_fifo->log_fifo, &log, 1,
 			&g_secDetector_log_fifo->log_fifo_lock);
 		if (ret != 1)
 			return -1;
-		avail_len = kfifo_len(&g_secDetector_log_fifo->log_fifo);
+		avail_len = kfifo_avail(&g_secDetector_log_fifo->log_fifo);
 		kfree(log.data);
 	}
 	return 0;
@@ -81,6 +81,7 @@ int write_log(const char *buf, unsigned int buf_len)
 
 	if (!buf || buf_len == 0 || buf_len > MSG_LEN)
 		return -EINVAL;
+
 	if (!g_secDetector_log_fifo || !g_secDetector_log_fifo->inflag)
 		return -1;
 
@@ -96,7 +97,7 @@ int write_log(const char *buf, unsigned int buf_len)
 	len = (buf_len == MSG_LEN) ? buf_len - 1 : buf_len;
 	memcpy(log.data, buf, len);
 
-	ret = kfifo_out_spinlocked(&g_secDetector_log_fifo->log_fifo, &log, 1,
+	ret = kfifo_in_spinlocked(&g_secDetector_log_fifo->log_fifo, &log, 1,
 				   &g_secDetector_log_fifo->log_fifo_lock);
 	if (ret != 1) {
 		kfree(log.data);
