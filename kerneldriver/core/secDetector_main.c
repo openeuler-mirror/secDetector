@@ -9,8 +9,8 @@
 #include <linux/module.h>
 #include <linux/proc_fs.h>
 #include "secDetector_manager.h"
+#include "secDetector_response.h"
 #include "response_unit/secDetector_proc.h"
-#include "response_unit/secDetector_ringbuffer.h"
 
 struct proc_dir_entry *g_root_dir;
 
@@ -35,7 +35,7 @@ static int __init secDetector_init(void)
 		return ret;
 	}
 
-	ret = secDetector_ringbuf_dev_init();
+	ret = secDetector_response_init();
 	if (ret != 0) {
 		pr_err("[secDetector] init ringbuf failed\n");
 		secDetector_destroy_log();
@@ -49,7 +49,7 @@ static int __init secDetector_init(void)
 
 static void __exit secDetector_exit(void)
 {
-	secDetector_ringbuf_dev_exit();
+	secDetector_response_exit();
 	secDetector_destroy_log();
 	proc_remove(g_root_dir);
 
