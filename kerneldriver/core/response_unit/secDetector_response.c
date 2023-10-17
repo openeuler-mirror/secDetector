@@ -8,6 +8,7 @@
 #include <linux/printk.h>
 #include <linux/bpf.h>
 #include <linux/slab.h>
+#include <linux/sched/signal.h>
 #include "secDetector_response.h"
 #include "secDetector_proc.h"
 #include "secDetector_ringbuffer.h"
@@ -20,6 +21,7 @@ struct response_rb_entry {
 response_func_t response_units[NR_RESPONSE] = {
 	[RESPONSE_OK] = secDetector_ok,
 	[RESPONSE_REPORT] = secdetector_report,
+	[RESPONSE_KILL] = secDetector_kill,
 };
 
 void notrace secdetector_respond(unsigned int response_type,
@@ -35,6 +37,12 @@ EXPORT_SYMBOL_GPL(secdetector_respond);
 void notrace secDetector_ok(response_data_t *data)
 {
 	return;
+}
+
+void notrace secDetector_kill(response_data_t *data)
+{
+	if (current->mm)
+		send_sig(SIGKILL, current, 1);
 }
 
 void notrace secdetector_report(response_data_t *log)
