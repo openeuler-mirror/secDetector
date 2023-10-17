@@ -61,9 +61,10 @@ static int __init register_secDetector_mc(void)
 	int ret;
 	ret = secDetector_module_register(&mc_module);
 	if (ret < 0)
-		pr_err("[secDetector case memory corruption] register event failed");
+		pr_err("[secDetector case memory corruption] register failed");
+	else
+		pr_info("[secDetector case memory corruption] register success\n");
 
-	pr_info("[secDetector case memory corruption] register success\n");
 	return ret;
 }
 

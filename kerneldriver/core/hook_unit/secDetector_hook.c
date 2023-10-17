@@ -129,7 +129,7 @@ static int unlink_timer_callback(struct secDetector_workflow *workflow)
 		return -1;
 
 	list_for_each_entry (timer, &secDetector_timer_list, list) {
-		if (workflow->interval != timer->interval) {
+		if (workflow->interval == timer->interval) {
 			list_del_rcu(&workflow->list);
 			synchronize_rcu();
 			if (list_empty(&timer->callback_list) == 1) {
