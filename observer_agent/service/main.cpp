@@ -14,6 +14,7 @@
  * Description: secDetector main entry
  */
 #include "ringbuffer.h"
+#include "../grpc_comm/grpc_api.h"
 #include <errno.h>
 #include <signal.h>
 #include <stdbool.h>
@@ -23,6 +24,21 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <syslog.h>
+#include <time.h>
+#include <thread>
+
+using grpc::Server;
+using grpc::ServerBuilder;
+using grpc::ServerContext;
+using grpc::ServerWriter;
+using grpc::Channel;
+using grpc::ClientContext;
+using grpc::ClientReader;
+using data_comm::Message;
+using data_comm::SubManager;
+using data_comm::SubscribeRequest;
+using data_comm::UnSubscribeRequest;
+using data_comm::PublishRequest;
 
 static volatile bool exiting = false;
 static void sig_handler(int sig) { exiting = true; }
@@ -33,6 +49,11 @@ static int ringbuf_cb(struct response_rb_entry *entry, size_t entry_size) {
 
     syslog(LOG_INFO, "type:%d, text:%s\n", entry->type, entry->text);
     /* TODO: you can add function there */
+    std::string server_address("unix:///var/run/secDetector.sock");
+    PubSubClient client(grpc::CreateChannel(
+        server_address, grpc::InsecureChannelCredentials()));
+        // topic need extra args
+    client.Publish(1, entry->text);
     return 0;
 }
 
@@ -54,10 +75,13 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
+    std::thread t = std::thread(RunServer);
+
     while (!exiting) {
         secDetector_ringbuf_poll((poll_cb)ringbuf_cb);
     }
 
     secDetector_ringbuf_detach();
+    t.join();
     return 0;
 }
