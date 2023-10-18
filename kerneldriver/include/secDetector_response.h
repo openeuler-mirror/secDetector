@@ -30,4 +30,6 @@ extern void notrace secDetector_proc_report(response_data_t *log);
 
 void free_response_data_no_rd(uint32_t repsonse_id, response_data_t *rd);
 void free_response_data(uint32_t repsonse_id, response_data_t *rd);
+extern int __init secDetector_response_init(void);
+extern void __exit secDetector_response_exit(void);
 #endif
