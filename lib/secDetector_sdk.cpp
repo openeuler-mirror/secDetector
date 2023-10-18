@@ -57,6 +57,7 @@ void PubSubClient::UnSubscribe(const int topic)
 	UnSubscribeRequest request;
 	request.set_topic(topic);
 
+	ClientContext context;
 	Message msg;
 	grpc::Status status = stub_->UnSubscibe(&context, request, &msg);
 
