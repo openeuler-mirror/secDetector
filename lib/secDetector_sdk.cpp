@@ -104,16 +104,16 @@ void secUnsub(const int topic, void *reader)
 	}
 }
 
-const char *secReadFrom(void *reader)
+void secReadFrom(void *reader, char *data, int data_len)
 {
-	string msg;
+	string msg("");
 
 	Readmao::iterator iter = g_reader_map.find(reader);
         if (iter != g_reader_map.end()) {
 		msg = g_client.ReadFrom(iter->second);
         }
 
-	return msg.c_str();
+	strncpy(data, msg.c_str(), data_len - 1);
 }
 
 #ifdef __cplusplus

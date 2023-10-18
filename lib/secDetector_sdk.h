@@ -50,6 +50,6 @@
 
 void *secSub(const int topic);
 void secUnsub(const int topic, void *reader);
-const char *secReadFrom(void *reader)
+void secReadFrom(void *reader, char *data, int data_len);
 
 #endif
