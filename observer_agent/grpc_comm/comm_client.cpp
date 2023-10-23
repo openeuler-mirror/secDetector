@@ -44,8 +44,12 @@ class PubSubClient {
 
         Message msg;
         SubFlag = true;
-
-	    return stub_->Subscribe(&context, request);
+        std::unique_ptr<ClientReader<Message>> reader = stub_->Subscribe(&context, request);
+        if (reader == nullptr) {
+            std::cerr << "Failed to subscribe." << std::endl;
+            return nullptr;
+        }
+        return reader;
     }
 
     void Publish(const int topic, const std::string& content) {
@@ -71,18 +75,21 @@ class PubSubClient {
 
         if (!status.ok()) {
             std::cerr << "Error: " << status.error_code() << ": " << status.error_message() << std::endl;
+        }else{
+            std::cout << "Received: " << msg.text() << std::endl;
         }
 
-        std::cout << "Received: " << msg.text() << std::endl;
-
-        return;
     }
 
     std::string ReadFrom(std::unique_ptr<ClientReader<Message>> &reader) {
         Message msg;
-        reader->Read(&msg);
-        std::cout << "Received: " << msg.text() << std::endl;
-        return msg.text();
+        if (reader->Read(&msg)) {
+            std::cout << "Received: " << msg.text() << std::endl;
+            return msg.text();
+        } else {
+            std::cerr << "Failed to read from the server." << std::endl;
+            return ""; // Handle read error
+        }
     }
 
     private:
