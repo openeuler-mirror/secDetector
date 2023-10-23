@@ -20,7 +20,7 @@
 
 using namespace std;
 static string server_address("unix:///var/run/secDetector.sock");
-static PubSubClient g_client(grpc::CreateChannel(server_address, grpc::InsecureChannelCredentials));
+static PubSubClient g_client(grpc::CreateChannel(server_address, grpc::InsecureChannelCredentials()));
 
 using Readmap = map<void *, unique_ptr<ClientReader<Message>>>;
 static Readmap g_reader_map;
@@ -48,7 +48,7 @@ void PubSubClient::Publish(const int topic, const string &context)
 	grpc::Status status = stub_->Publish(&pub_context, request, &msg);
 
 	if (!status.ok()) {
-		cerr << "Publish Error: " << status.error.code() << ": " << status.error_message() << endl;
+		cerr << "Publish Error: " << status.error_code() << ": " << status.error_message() << endl;
 	}
 }
 
@@ -59,12 +59,12 @@ void PubSubClient::UnSubscribe(const int topic)
 
 	ClientContext context;
 	Message msg;
-	grpc::Status status = stub_->UnSubscibe(&context, request, &msg);
+	grpc::Status status = stub_->UnSubscribe(&context, request, &msg);
 
 	SubFlag = false;
 
 	if (!status.ok()) {
-                cerr << "UnSubscribe Error: " << status.error.code() << ": " << status.error_message() << endl;
+                cerr << "UnSubscribe Error: " << status.error_code() << ": " << status.error_message() << endl;
         }
 
 	cout << "UnSubsccribe Received: " << msg.text() << endl;
@@ -86,8 +86,8 @@ extern "C" {
 
 void *secSub(const int topic)
 {
-	unique_ptr<ClientReader<Message>> reader = g_clinet.Subscribe(topic);
-	void * ret_reader = static<void *>(reader.get());
+	unique_ptr<ClientReader<Message>> reader = g_client.Subscribe(topic);
+	void * ret_reader = static_cast<void *>(reader.get());
 
 	g_reader_map.insert(Readmap::value_type(ret_reader, move(reader)));
 	return ret_reader;
@@ -95,10 +95,10 @@ void *secSub(const int topic)
 
 void secUnsub(const int topic, void *reader)
 {
-	g_client.Publih(topic, "end");
+	g_client.Publish(topic, "end");
 	g_client.UnSubscribe(topic);
 	
-	Readmao::iterator iter = g_reader_map.find(reader);
+	Readmap::iterator iter = g_reader_map.find(reader);
 	if (iter != g_reader_map.end()) {
 		g_reader_map.erase(iter);
 	}
@@ -108,7 +108,7 @@ void secReadFrom(void *reader, char *data, int data_len)
 {
 	string msg("");
 
-	Readmao::iterator iter = g_reader_map.find(reader);
+	Readmap::iterator iter = g_reader_map.find(reader);
         if (iter != g_reader_map.end()) {
 		msg = g_client.ReadFrom(iter->second);
         }
