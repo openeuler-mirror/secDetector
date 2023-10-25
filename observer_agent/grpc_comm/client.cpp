@@ -34,10 +34,6 @@ PubSubClient::PubSubClient(std::shared_ptr<Channel> channel)
 std::unique_ptr<ClientReader<Message>> PubSubClient::Subscribe(const int topic) {
     SubscribeRequest request;
     request.set_topic(topic);
-    //ClientContext context;
-    // fork / copy_thread to read date
-    //std::unique_ptr<ClientReader<Message>> reader(
-    //  stub_->Subscribe(&context, request));
     Message msg;
     SubFlag = true;
 	return stub_->Subscribe(&context, request);
@@ -59,9 +55,9 @@ void PubSubClient::UnSubscribe(const int topic) {
     UnSubscribeRequest request;
     request.set_topic(topic);
 
-    //ClientContext context;
+    ClientContext unsub_context;
     Message msg;
-    grpc::Status status = stub_->UnSubscribe(&context, request, &msg);
+    grpc::Status status = stub_->UnSubscribe(&unsub_context, request, &msg);
     SubFlag = false;
 
     if (!status.ok()) {
@@ -79,24 +75,3 @@ std::string PubSubClient::ReadFrom(std::unique_ptr<ClientReader<Message>> &reade
     std::cout << "Received: " << msg.text() << std::endl;
     return msg.text();
 }
-
-// int main(int argc, char** argv) {
-//     std::string server_address("unix:///var/run/secDetector.sock");
-//     PubSubClient client(grpc::CreateChannel(
-//         server_address, grpc::InsecureChannelCredentials()));
-
-//     std::unique_ptr<ClientReader<Message>> cli_reader = client.Subscribe(1);
-//     std::string some_data = client.ReadFrom(cli_reader);
-//     std::cout << "whz: " << some_data << std::endl;
-//     while (some_data != "end") {
-//         some_data = client.ReadFrom(cli_reader);
-//         std::cout << "loop whz: " << some_data << std::endl;
-//     }
-    // client.Publish(1, "ahahahah");
-    // client.Publish(1, "end");
-    //sleep(5);
-    //client.UnSubscribe(1);
-
-//     return 0;
-// }
-

@@ -10,7 +10,7 @@
  * See the Mulan PSL v2 for more details.
  *
  * Author: hurricane618
- * Create: 2023-09-26
+ * Create: 2023-10-18
  * Description: secDetector grpc server
  */
 #include <grpcpp/grpcpp.h>
@@ -30,8 +30,6 @@ class PubSubServiceImpl final : public SubManager::Service {
  public:
   grpc::Status Subscribe(ServerContext* context, const SubscribeRequest* request,
                          ServerWriter<Message>* writer) override {
-    // Here you would normally check the topic and write the appropriate messages.
-    // For simplicity, we're just writing a single message here.
     int cli_topic = request->topic();
     // ToDo: somebody topic
     subscribers_[cli_topic].push_back(writer);
@@ -70,7 +68,6 @@ class PubSubServiceImpl final : public SubManager::Service {
   grpc::Status UnSubscribe(ServerContext* context, const UnSubscribeRequest* request,
                            Message* response) override {
     int cli_topic = request->topic();
-    //subscribers_[topic].pop_front(writer);
 
     // ToDo: add extra check or feature code
     response->set_text("topic: " + std::to_string(cli_topic) + " UnSubscribe success!");
@@ -91,9 +88,3 @@ void RunServer() {
   std::unique_ptr<Server> server(builder.BuildAndStart());
   server->Wait();
 }
-
-// int main(int argc, char** argv) {
-//   RunServer();
-//   return 0;
-// }
-
