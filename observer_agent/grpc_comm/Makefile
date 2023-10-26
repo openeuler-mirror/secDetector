@@ -38,18 +38,21 @@ PROTOS_PATH = ./protos
 
 vpath %.proto $(PROTOS_PATH)
 
-all: system-check client server comm_client
+all: system-check client server client_pub_demo client_sub_demo server_demo
 
-client: comm_api.pb.o comm_api.grpc.pb.o comm_client.o
+client: comm_api.pb.o comm_api.grpc.pb.o client.o
 	@echo "only compile client don't link"
 
-server: comm_api.pb.o comm_api.grpc.pb.o comm_server.o
+server: comm_api.pb.o comm_api.grpc.pb.o server.o
 	@echo "only compile server don't link"
 
-comm_client: comm_api.pb.o comm_api.grpc.pb.o comm_client.o
+client_pub_demo: comm_api.pb.o comm_api.grpc.pb.o client_pub_demo.o
 	$(CXX) $^ $(LDFLAGS) -o $@
 
-comm_server: comm_api.pb.o comm_api.grpc.pb.o comm_server.o
+client_sub_demo: comm_api.pb.o comm_api.grpc.pb.o client_sub_demo.o
+	$(CXX) $^ $(LDFLAGS) -o $@
+
+server_demo: comm_api.pb.o comm_api.grpc.pb.o server_demo.o
 	$(CXX) $^ $(LDFLAGS) -o $@
 
 %.grpc.pb.cc: %.proto
@@ -59,7 +62,7 @@ comm_server: comm_api.pb.o comm_api.grpc.pb.o comm_server.o
 	$(PROTOC) -I $(PROTOS_PATH) --cpp_out=. $<
 
 clean:
-	rm -f *.o *.pb.cc *.pb.h comm_client comm_server
+	rm -f *.o *.pb.cc *.pb.h server_demo client_sub_demo client_pub_demo
 
 
 # The following is to test your system and ensure a smoother experience.

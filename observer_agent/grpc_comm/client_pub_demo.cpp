@@ -10,8 +10,8 @@
  * See the Mulan PSL v2 for more details.
  *
  * Author: hurricane618
- * Create: 2023-09-26
- * Description: secDetector grpc client
+ * Create: 2023-10-18
+ * Description: secDetector grpc client publish demo
  */
 #include <grpcpp/grpcpp.h>
 #include "comm_api.grpc.pb.h"
@@ -35,12 +35,6 @@ class PubSubClient {
     std::unique_ptr<ClientReader<Message>> Subscribe(const int topic) {
         SubscribeRequest request;
         request.set_topic(topic);
-
-        //ClientContext context;
-
-        // fork / copy_thread to read date
-        //std::unique_ptr<ClientReader<Message>> reader(
-        //  stub_->Subscribe(&context, request));
 
         Message msg;
         SubFlag = true;
@@ -68,17 +62,16 @@ class PubSubClient {
         UnSubscribeRequest request;
         request.set_topic(topic);
 
-        //ClientContext context;
+        ClientContext unsub_context;
         Message msg;
-        grpc::Status status = stub_->UnSubscribe(&context, request, &msg);
+        grpc::Status status = stub_->UnSubscribe(&unsub_context, request, &msg);
         SubFlag = false;
 
         if (!status.ok()) {
             std::cerr << "Error: " << status.error_code() << ": " << status.error_message() << std::endl;
-        }else{
+        } else {
             std::cout << "Received: " << msg.text() << std::endl;
         }
-
     }
 
     std::string ReadFrom(std::unique_ptr<ClientReader<Message>> &reader) {
@@ -103,17 +96,11 @@ int main(int argc, char** argv) {
     PubSubClient client(grpc::CreateChannel(
         server_address, grpc::InsecureChannelCredentials()));
 
-    std::unique_ptr<ClientReader<Message>> cli_reader = client.Subscribe(1);
-    std::string some_data = client.ReadFrom(cli_reader);
-    std::cout << "whz: " << some_data << std::endl;
-    while (some_data != "end") {
-        some_data = client.ReadFrom(cli_reader);
-        std::cout << "loop whz: " << some_data << std::endl;
-    }
-    // client.Publish(1, "ahahahah");
-    // client.Publish(1, "end");
-    // sleep(5);
-    // client.UnSubscribe(1);
+    client.Publish(1, "ahahahah");
+    sleep(3);
+    client.Publish(1, "hello,world!");
+    sleep(3);
+    client.Publish(1, "end");
 
     return 0;
 }
