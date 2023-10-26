@@ -22,7 +22,10 @@ enum WORKFLOW_TYPE {
 struct secDetector_workflow;
 union workflow_func {
 	void (*func)(void);
-	void (*file_event)(struct secDetector_workflow *, struct secDetector_file *, int);
+	int (*file_event)(struct secDetector_workflow *,
+			  struct secDetector_file *, int);
+	int (*task_event)(struct secDetector_workflow *,
+			  struct secDetector_task *, int flag);
 	void (*timer_func)(struct secDetector_workflow *, struct timer_list *);
 	void (*func_wf)(struct secDetector_workflow *);
 };
@@ -55,8 +58,6 @@ typedef struct secDetector_workflow {
 
 	//intermediate status
 	analyze_status_t analyze_status;
-
-
 } secDetector_workflow_t;
 
 #endif
