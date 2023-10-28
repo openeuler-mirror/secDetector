@@ -10,9 +10,19 @@
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/seq_file.h>
+#include <linux/proc_fs.h>
 #include "secDetector_workflow_type.h"
 
 typedef struct secDetector_workflow secDetector_workflow_t;
+
+struct secDetector_parameter {
+	const char *name;
+	const struct proc_ops *proc_ops;
+	umode_t mode;
+	void *data;
+	struct proc_dir_entry *entry;
+};
+
 struct secDetector_module {
 	struct list_head list;
 	struct rcu_head rcu;
@@ -23,6 +33,8 @@ struct secDetector_module {
 
 	secDetector_workflow_t *workflow_array;
 	uint32_t workflow_array_len;
+
+	struct secDetector_parameter *parameter;
 };
 
 #endif

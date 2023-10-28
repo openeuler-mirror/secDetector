@@ -20,7 +20,7 @@ struct response_rb_entry {
 
 response_func_t response_units[NR_RESPONSE] = {
 	[RESPONSE_OK] = secDetector_ok,
-	[RESPONSE_REPORT] = secdetector_report,
+	[RESPONSE_REPORT] = secDetector_report,
 	[RESPONSE_KILL] = secDetector_kill,
 };
 
@@ -45,7 +45,7 @@ void notrace secDetector_kill(response_data_t *data)
 		send_sig(SIGKILL, current, 1);
 }
 
-void notrace secdetector_report(response_data_t *log)
+void notrace secDetector_report(response_data_t *log)
 {
 	int ret;
 	struct response_rb_entry *rb_entry;
@@ -70,7 +70,7 @@ void notrace secdetector_report(response_data_t *log)
 		pr_warn("write ringbuf failed\n");
 	kfree(rb_entry);
 }
-EXPORT_SYMBOL_GPL(secdetector_report);
+EXPORT_SYMBOL_GPL(secDetector_report);
 
 void notrace secDetector_proc_report(response_data_t *log)
 {

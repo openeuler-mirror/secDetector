@@ -12,8 +12,6 @@
 #include "secDetector_response.h"
 #include "response_unit/secDetector_proc.h"
 
-struct proc_dir_entry *g_root_dir;
-
 static unsigned int log_size = 4096;
 module_param(log_size, uint, 0400);
 MODULE_PARM_DESC(log_size, "log size");

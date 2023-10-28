@@ -15,6 +15,7 @@
 
 static DEFINE_IDR(g_module_idr);
 static LIST_HEAD(secDetector_module_list);
+struct proc_dir_entry *g_root_dir;
 
 void secDetector_module_unregister(struct secDetector_module *module)
 {
@@ -28,6 +29,9 @@ void secDetector_module_unregister(struct secDetector_module *module)
 		return;
 	}
 
+	if (module->parameter && module->parameter->entry)
+		proc_remove(module->parameter->entry);
+
 	mutex_lock(&g_hook_list_array_mutex);
 	ret_id = idr_remove(&g_module_idr, (unsigned long)module->id);
 	if (ret_id == NULL) {
@@ -35,7 +39,7 @@ void secDetector_module_unregister(struct secDetector_module *module)
 	}
 
 	for (i = 0, wf = module->workflow_array; i < module->workflow_array_len;
-		 i++, wf++) {
+	     i++, wf++) {
 		if (wf == NULL) {
 			goto error;
 		}
@@ -60,12 +64,13 @@ error:
 }
 EXPORT_SYMBOL_GPL(secDetector_module_unregister);
 
-static void secDetector_collect_analyze_response_unit_padding(struct secDetector_workflow *wf)
+static void secDetector_collect_analyze_response_unit_padding(
+	struct secDetector_workflow *wf)
 {
 	int i;
 	struct secDetector_collect *sc = wf->collect_array;
 	struct secDetector_response *sr = wf->response_array;
-	
+
 	for (i = 0; i < wf->collect_array_len; i++) {
 		if (sc[i].collect_type < COLLECT_CUSTOMIZATION)
 			sc[i].collect_func = collect_units[sc[i].collect_type];
@@ -75,8 +80,9 @@ static void secDetector_collect_analyze_response_unit_padding(struct secDetector
 		wf->analyze_func = analyze_units[wf->analyze_type];
 	}
 
-	if (wf->response_array_len == 0) {// 使用默认response list
-		sr = kmalloc(sizeof(struct secDetector_response) * NR_RESPONSE, GFP_KERNEL);
+	if (wf->response_array_len == 0) { // 使用默认response list
+		sr = kmalloc(sizeof(struct secDetector_response) * NR_RESPONSE,
+			     GFP_KERNEL);
 		if (sr == NULL) {
 			pr_err("kmalloc failed");
 			return;
@@ -85,13 +91,13 @@ static void secDetector_collect_analyze_response_unit_padding(struct secDetector
 			sr[i].response_type = i;
 			sr[i].response_func = response_units[i];
 		}
-	} else {// 自定义response list
+	} else { // 自定义response list
 		for (i = 0; i < wf->response_array_len; i++) {
 			if (sr[i].response_type < RESPONSE_CUSTOMIZATION)
-			sr[i].response_func = response_units[sr[i].response_type];
+				sr[i].response_func =
+					response_units[sr[i].response_type];
 		}
 	}
-
 }
 
 int secDetector_module_register(struct secDetector_module *module)
@@ -101,6 +107,7 @@ int secDetector_module_register(struct secDetector_module *module)
 	int i;
 	int module_id;
 	unsigned int callback_id = 0;
+	struct secDetector_parameter *param = module->parameter;
 
 	if (module == NULL) {
 		pr_err("[secDetector] register module is null\n");
@@ -115,7 +122,7 @@ int secDetector_module_register(struct secDetector_module *module)
 
 	mutex_lock(&g_hook_list_array_mutex);
 	for (i = 0, wf = module->workflow_array; i < module->workflow_array_len;
-		 i++, wf++) {
+	     i++, wf++) {
 		if (wf == NULL) {
 			ret = -EINVAL;
 			goto error;
@@ -134,10 +141,19 @@ int secDetector_module_register(struct secDetector_module *module)
 		wf->id = callback_id++;
 	}
 
+	if (param) {
+		param->entry =
+			proc_create_data(param->name, param->mode, g_root_dir,
+					 param->proc_ops, param->data);
+		if (!param->entry) {
+			pr_err("[secDetector] create proc failed\n");
+			goto error;
+		}
+	}
+
 	module->id = (unsigned int)module_id;
 	list_add_rcu(&module->list, &secDetector_module_list);
 	mutex_unlock(&g_hook_list_array_mutex);
-
 	return ret;
 
 error:

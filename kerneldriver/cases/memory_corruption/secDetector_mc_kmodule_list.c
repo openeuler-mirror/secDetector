@@ -46,7 +46,7 @@ void check_kmodule_list(void)
 			log.report_data.len = MC_KMODULE_REPORT_WORD_LEN + strlen(k->name);
 			log.report_data.text = kmalloc(log.report_data.len, GFP_KERNEL);
 			sprintf(log.report_data.text, "[secDetector] mc kmoudle list find! module_name=%s.\n", k->name);
-			secdetector_report(&log);
+			secDetector_report(&log);
 			kfree(log.report_data.text);
 		}
 		mutex_unlock(&module_mutex);

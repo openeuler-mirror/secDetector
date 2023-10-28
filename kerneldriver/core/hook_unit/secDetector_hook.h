@@ -42,26 +42,32 @@ extern void init_secDetector_hook(void);
 		list_for_each_entry_rcu (workflow, &(callback_list), list) {   \
 			if (atomic_read(&workflow->enabled) &&                 \
 			    atomic_read(&workflow->module->enabled))           \
-				workflow->workflow_func.func(workflow, PARAMS(args));    \
+				workflow->workflow_func.func(workflow,         \
+							     PARAMS(args));    \
 		}                                                              \
 		mutex_unlock(&g_hook_list_array_mutex);                        \
 	} while (0)
 
 //for tracepoint
-#define _do_secDetector_callback_atomic(func, callback_list, args)             \
+#define _do_secDetector_callback_atomic(func, callback_list, sec_ret, args)    \
 	do {                                                                   \
 		struct secDetector_workflow *workflow;                         \
 		rcu_read_lock();                                               \
 		list_for_each_entry_rcu (workflow, &(callback_list), list) {   \
 			if (atomic_read(&workflow->enabled) &&                 \
-			    atomic_read(&workflow->module->enabled))           \
-				workflow->workflow_func.func(workflow, PARAMS(args));    \
+			    atomic_read(&workflow->module->enabled)) {         \
+				int ___func_ret =                              \
+					workflow->workflow_func.func(          \
+						workflow, PARAMS(args));       \
+				if (sec_ret && ___func_ret)                    \
+					*sec_ret = ___func_ret;                \
+			}                                                      \
 		}                                                              \
 		rcu_read_unlock();                                             \
 	} while (0)
 
-#define do_secDetector_hook_callback(func, id, args)                           \
+#define do_secDetector_hook_callback(func, id, sec_ret, args)                  \
 	_do_secDetector_callback_atomic(func, secDetector_hook_array[id],      \
-					PARAMS(args))
+					sec_ret, PARAMS(args))
 
 #endif
