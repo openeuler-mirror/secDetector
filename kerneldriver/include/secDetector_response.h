@@ -20,7 +20,7 @@ struct secDetector_response {
 
 extern void notrace secdetector_respond(unsigned int response_type,
 					response_data_t *data);
-extern void notrace secdetector_report(response_data_t *log);
+extern void notrace secDetector_report(response_data_t *log);
 
 void notrace secDetector_ok(response_data_t *data);
 void notrace secDetector_kill(response_data_t *data);

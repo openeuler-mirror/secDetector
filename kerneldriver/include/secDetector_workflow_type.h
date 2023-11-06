@@ -8,7 +8,7 @@
 #ifndef SECDETECTOR_WORKFLOW_TYPE_H
 #define SECDETECTOR_WORKFLOW_TYPE_H
 
-#include <linux/secDetector.h>
+#include <linux/secdetector.h>
 #include "secDetector_hook_type.h"
 #include "secDetector_collect_type.h"
 #include "secDetector_analyze_type.h"
@@ -23,9 +23,9 @@ struct secDetector_workflow;
 union workflow_func {
 	void (*func)(void);
 	int (*file_event)(struct secDetector_workflow *,
-			  struct secDetector_file *, int);
+			  struct secdetector_file *, int);
 	int (*task_event)(struct secDetector_workflow *,
-			  struct secDetector_task *, int flag);
+			  struct secdetector_task *, int flag);
 	void (*timer_func)(struct secDetector_workflow *, struct timer_list *);
 	void (*func_wf)(struct secDetector_workflow *);
 };
