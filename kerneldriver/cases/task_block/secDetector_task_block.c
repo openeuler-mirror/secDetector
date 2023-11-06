@@ -17,6 +17,7 @@
 #include "secDetector_response.h"
 #include <secDetector_module_type.h>
 #include <string.h>
+#include <linux/binfmts.h>
 
 #define BUF_SIZE 4096
 #define RULE_STR_SIZE 1024
@@ -71,7 +72,7 @@ out:
 }
 
 static int task_exec_event_handler(struct secDetector_workflow *wf,
-				   struct secDetector_task *task, int flag)
+				   struct secdetector_task *task, int flag)
 {
 	if (flag == SECDETECTOR_TASK_BPRM_CHECK)
 		return task_bprm_check(wf, task->bprm);

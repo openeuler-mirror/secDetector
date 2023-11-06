@@ -71,7 +71,7 @@ out:
 }
 
 static int file_event_handler(struct secDetector_workflow *wf,
-			      struct secDetector_file *file, int flag)
+			      struct secdetector_file *file, int flag)
 {
 	if (flag == SECDETECTOR_FILE_WRITE_PRE)
 		return file_write_check(wf, file->file);
