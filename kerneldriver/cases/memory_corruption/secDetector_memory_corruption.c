@@ -80,3 +80,4 @@ static void __exit unregister_secDetector_mc(void)
 module_init(register_secDetector_mc);
 module_exit(unregister_secDetector_mc);
 MODULE_LICENSE("GPL");
+

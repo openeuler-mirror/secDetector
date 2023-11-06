@@ -47,6 +47,8 @@
 #define NEWACCOUNT 0x00200000
 /* device management */
 #define OPERATEDEV 0x00400000
+/* memory corruption kmodule list */
+#define KMODULELIST 0x00800000
 
 void *secSub(const int topic);
 void secUnsub(const int topic, void *reader);
