@@ -91,6 +91,7 @@ static void secDetector_collect_analyze_response_unit_padding(
 			sr[i].response_type = i;
 			sr[i].response_func = response_units[i];
 		}
+		wf->response_array = sr;
 	} else { // 自定义response list
 		for (i = 0; i < wf->response_array_len; i++) {
 			if (sr[i].response_type < RESPONSE_CUSTOMIZATION)
