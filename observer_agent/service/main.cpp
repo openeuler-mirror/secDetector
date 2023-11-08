@@ -53,7 +53,7 @@ static int ringbuf_cb(struct response_rb_entry *entry, size_t entry_size) {
     PubSubClient client(grpc::CreateChannel(
         server_address, grpc::InsecureChannelCredentials()));
         // topic need extra args
-    client.Publish(1, entry->text);
+    client.Publish(entry->type, entry->text);
     return 0;
 }
 
