@@ -33,10 +33,9 @@ void preset_workflow(secDetector_workflow_t *wf)
 
 	repsonse_id = wf->analyze_func(&collect_data_list, &(wf->analyze_status), &rd);
 
-	if (repsonse_id >= 0) {
+	if (repsonse_id >= 0)
 		wf->response_array[repsonse_id].response_func(&rd);
-	}
-	
+
 	free_collect_data_list(&collect_data_list);
 	free_response_data_no_rd(repsonse_id, &rd);
 }

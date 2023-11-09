@@ -13,7 +13,7 @@
 #include "secDetector_mc_kmodule_list.h"
 
 
-#define TIME_INTERVAL 100
+#define TIME_INTERVAL 10
 DEFINE_MUTEX(case_mc_mutex);
 
 
