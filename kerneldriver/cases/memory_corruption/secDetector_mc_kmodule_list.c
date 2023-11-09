@@ -27,7 +27,6 @@ void check_kmodule_list(void)
 	struct kset *module_kset = __this_module.mkobj.kobj.kset;
 	response_data_t log;
 
-
 	if (module_kset == NULL)
 	return;
 

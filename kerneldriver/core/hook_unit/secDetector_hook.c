@@ -100,7 +100,7 @@ static int insert_timer_callback(struct secDetector_workflow *workflow)
 		return -1;
 
 	list_for_each_entry (timer, &secDetector_timer_list, list) {
-		if (workflow->interval != timer->interval) {
+		if (workflow->interval == timer->interval) {
 			list_add_rcu(&workflow->list, &timer->callback_list);
 			return 0;
 		}
@@ -124,23 +124,24 @@ static int insert_timer_callback(struct secDetector_workflow *workflow)
 
 static int unlink_timer_callback(struct secDetector_workflow *workflow)
 {
-	struct secDetector_timer *timer = NULL;
+	struct secDetector_timer *timer, *temp;
 	if (workflow == NULL)
 		return -1;
 
-	list_for_each_entry (timer, &secDetector_timer_list, list) {
+	list_for_each_entry_safe (timer, temp, &secDetector_timer_list, list) {
 		if (workflow->interval == timer->interval) {
 			list_del_rcu(&workflow->list);
 			synchronize_rcu();
-			if (list_empty(&timer->callback_list) == 1) {
+			if (list_empty(&timer->callback_list)) {
 				del_timer_sync(&timer->timer);
 				list_del_rcu(&timer->list);
 				cancel_work_sync(&timer->work);
 				kfree_rcu(timer, rcu);
 			}
-			break;
+			return 1;
 		}
 	}
+
 	return 0;
 }
 
@@ -174,12 +175,13 @@ int delete_callback(struct secDetector_workflow *workflow)
 	if (workflow == NULL)
 		return ret;
 
+	ret = 0;
 	for (i = 0; i < ARRAY_SIZE(hook_list_funcs); i++) {
 		list_func = &hook_list_funcs[i];
 		if (workflow->hook_type >= list_func->type_min &&
 			workflow->hook_type <= list_func->type_max) {
 			if (!list_func->exists(workflow))
-				return 0;
+				continue;
 			ret = list_func->delete (workflow);
 			break;
 		}

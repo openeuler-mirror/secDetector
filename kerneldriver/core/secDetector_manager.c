@@ -45,7 +45,7 @@ void secDetector_module_unregister(struct secDetector_module *module)
 		}
 		ret = delete_callback(wf);
 		if (ret < 0) {
-			pr_err("[secDetector] delete callback failed\n");
+			pr_err("[secDetector] delete callback failed, return %d\n", ret);
 			goto error;
 		}
 		// workflow在被卸载的时候，需要释放analyze status等申请的内存,特别是使用默认的response list。
@@ -136,7 +136,7 @@ int secDetector_module_register(struct secDetector_module *module)
 
 		ret = insert_callback(wf);
 		if (ret < 0) {
-			pr_err("[secDetector] insert callback failed\n");
+			pr_err("[secDetector] insert callback failed, return %d\n", ret);
 			goto error;
 		}
 		wf->id = callback_id++;
