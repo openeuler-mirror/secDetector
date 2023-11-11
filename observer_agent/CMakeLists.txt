@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.1)
 
+add_subdirectory(ebpf)
 set(CMAKE_CXX_STANDARD 11)
 project(observer_agent VERSION 1.0 LANGUAGES CXX)
 set(GRPC_PATH ${CMAKE_CURRENT_SOURCE_DIR}/grpc_comm)
