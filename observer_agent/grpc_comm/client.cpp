@@ -31,12 +31,19 @@ using data_comm::PublishRequest;
 PubSubClient::PubSubClient(std::shared_ptr<Channel> channel)
       : stub_(SubManager::NewStub(channel)) {}
 
-std::unique_ptr<ClientReader<Message>> PubSubClient::Subscribe(const int topic) {
-    SubscribeRequest request;
-    request.set_topic(topic);
-    Message msg;
-    SubFlag = true;
-	return stub_->Subscribe(&context, request);
+std::unique_ptr<ClientReader<Message>> PubSubClient::Subscribe(const int topic, const std::string& name) {
+        SubscribeRequest request;
+        request.set_topic(topic);
+        request.set_sub_name(name);
+
+        Message msg;
+        SubFlag = true;
+        std::unique_ptr<ClientReader<Message>> reader = stub_->Subscribe(&context, request);
+        if (reader == nullptr) {
+            std::cerr << "Failed to subscribe." << std::endl;
+            return nullptr;
+        }
+        return reader;
 }
 
 void PubSubClient::Publish(const int topic, const std::string& content) {
@@ -51,9 +58,10 @@ void PubSubClient::Publish(const int topic, const std::string& content) {
     }
 }
     
-void PubSubClient::UnSubscribe(const int topic) {
+void PubSubClient::UnSubscribe(const int topic, const std::string& name) {
     UnSubscribeRequest request;
     request.set_topic(topic);
+    request.set_sub_name(name);
 
     ClientContext unsub_context;
     Message msg;
@@ -62,16 +70,18 @@ void PubSubClient::UnSubscribe(const int topic) {
 
     if (!status.ok()) {
         std::cerr << "Error: " << status.error_code() << ": " << status.error_message() << std::endl;
+    } else {
+        std::cout << "Received: " << msg.text() << std::endl;
     }
-
-    std::cout << "Received: " << msg.text() << std::endl;
-
-    return;
 }
 
 std::string PubSubClient::ReadFrom(std::unique_ptr<ClientReader<Message>> &reader) {
     Message msg;
-    reader->Read(&msg);
-    std::cout << "Received: " << msg.text() << std::endl;
-    return msg.text();
+    if (reader->Read(&msg)) {
+        std::cout << "Received: " << msg.text() << std::endl;
+        return msg.text();
+    } else {
+        std::cerr << "Failed to read from the server." << std::endl;
+        return ""; // Handle read error
+    }
 }

@@ -32,9 +32,10 @@ class PubSubClient {
     PubSubClient(std::shared_ptr<Channel> channel)
       : stub_(SubManager::NewStub(channel)) {}
 
-    std::unique_ptr<ClientReader<Message>> Subscribe(const int topic) {
+    std::unique_ptr<ClientReader<Message>> Subscribe(const int topic, const std::string& name) {
         SubscribeRequest request;
         request.set_topic(topic);
+        request.set_sub_name(name);
 
         Message msg;
         SubFlag = true;
@@ -58,9 +59,10 @@ class PubSubClient {
         }
     }
 
-    void UnSubscribe(const int topic) {
+    void UnSubscribe(const int topic, const std::string& name) {
         UnSubscribeRequest request;
         request.set_topic(topic);
+        request.set_sub_name(name);
 
         ClientContext unsub_context;
         Message msg;
@@ -96,13 +98,18 @@ int main(int argc, char** argv) {
     PubSubClient client(grpc::CreateChannel(
         server_address, grpc::InsecureChannelCredentials()));
 
-    std::unique_ptr<ClientReader<Message>> cli_reader = client.Subscribe(1);
+    if (argc != 3) {
+        std::cout << "[Usage] ./client_sub_demo topic_num suber_name" << std::endl;
+    }
+
+    std::unique_ptr<ClientReader<Message>> cli_reader = client.Subscribe(std::stoi(argv[1]), argv[2]);
     std::string some_data = client.ReadFrom(cli_reader);
     std::cout << "whz: " << some_data << std::endl;
     while (some_data != "" && some_data != "end") {
         some_data = client.ReadFrom(cli_reader);
         std::cout << "loop whz: " << some_data << std::endl;
     }
+    client.UnSubscribe(std::stoi(argv[1]), argv[2]);
 
     return 0;
 }

@@ -9,10 +9,12 @@ message Message {
 
 message SubscribeRequest {
   int32 topic = 1;
+  string sub_name = 2;
 }
 
 message UnSubscribeRequest {
   int32 topic = 1;
+  string sub_name = 2;
 }
 
 message PublishRequest {

@@ -32,9 +32,10 @@ class PubSubClient {
     PubSubClient(std::shared_ptr<Channel> channel)
       : stub_(SubManager::NewStub(channel)) {}
 
-    std::unique_ptr<ClientReader<Message>> Subscribe(const int topic) {
+    std::unique_ptr<ClientReader<Message>> Subscribe(const int topic, const std::string& name) {
         SubscribeRequest request;
         request.set_topic(topic);
+        request.set_sub_name(name);
 
         Message msg;
         SubFlag = true;
@@ -58,9 +59,10 @@ class PubSubClient {
         }
     }
 
-    void UnSubscribe(const int topic) {
+    void UnSubscribe(const int topic, const std::string& name) {
         UnSubscribeRequest request;
         request.set_topic(topic);
+        request.set_sub_name(name);
 
         ClientContext unsub_context;
         Message msg;
@@ -96,11 +98,14 @@ int main(int argc, char** argv) {
     PubSubClient client(grpc::CreateChannel(
         server_address, grpc::InsecureChannelCredentials()));
 
-    client.Publish(1, "ahahahah");
+    if (argc != 3) {
+        std::cout << "[Usage] ./client_pub_demo topic_num publish_data" << std::endl;
+    }
+    client.Publish(std::stoi(argv[1]), argv[2]);
     sleep(3);
-    client.Publish(1, "hello,world!");
+    client.Publish(std::stoi(argv[1]), "hello,world!");
     sleep(3);
-    client.Publish(1, "end");
+    client.Publish(std::stoi(argv[1]), "end");
 
     return 0;
 }
