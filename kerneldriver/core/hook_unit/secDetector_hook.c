@@ -25,6 +25,8 @@ static int unlink_timer_callback(struct secDetector_workflow *workflow);
 static bool timer_callback_exists(struct secDetector_workflow *workflow);
 
 static struct hook_list_func hook_list_funcs[] = {
+	{ KPROBE_HOOK_START, KPROBE_HOOK_END, insert_kprobe_hook,
+	  delete_kprobe_hook, kprobe_exists },
 	{ TRACEPOINT_HOOK_START, TRACEPOINT_HOOK_END, insert_tracepoint_hook,
 	  delete_tracepoint_hook, tracepoint_exists },
 	{ SECDETECTOR_TIMER, SECDETECTOR_TIMER, insert_timer_callback,
