@@ -28,6 +28,8 @@ union workflow_func {
 			  struct secdetector_task *, int flag);
 	void (*timer_func)(struct secDetector_workflow *, struct timer_list *);
 	void (*func_wf)(struct secDetector_workflow *);
+	int (*kprobe_func)(struct secDetector_workflow *,
+				struct kprobe *, struct pt_regs *);
 };
 
 typedef struct secDetector_module secDetector_module_t;

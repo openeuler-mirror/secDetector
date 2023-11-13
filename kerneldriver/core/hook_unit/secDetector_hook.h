@@ -16,6 +16,10 @@
 extern struct list_head secDetector_hook_array[HOOKEND];
 extern struct mutex g_hook_list_array_mutex;
 
+extern int insert_kprobe_hook(struct secDetector_workflow *workflow);
+extern int delete_kprobe_hook(struct secDetector_workflow *workflow);
+extern bool kprobe_exists(struct secDetector_workflow *workflow);
+
 extern int insert_tracepoint_hook(struct secDetector_workflow *workflow);
 extern int delete_tracepoint_hook(struct secDetector_workflow *workflow);
 extern bool tracepoint_exists(struct secDetector_workflow *workflow);
