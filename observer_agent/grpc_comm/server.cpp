@@ -14,6 +14,7 @@
  * Description: secDetector grpc server
  */
 #include <grpcpp/grpcpp.h>
+#include <sys/stat.h>
 #include "comm_api.grpc.pb.h"
 
 using grpc::Server;
@@ -116,5 +117,6 @@ void RunServer() {
   builder.RegisterService(&service);
 
   std::unique_ptr<Server> server(builder.BuildAndStart());
+  chmod("/var/run/secDetector.sock", S_IRUSR | S_IWUSR);
   server->Wait();
 }
