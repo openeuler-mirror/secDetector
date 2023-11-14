@@ -2,6 +2,7 @@
 #define SECDETECTOR_OBSERVER_AGENT_GRPC_API_H
 
 #include <grpcpp/grpcpp.h>
+#include <uuid/uuid.h>
 #include "comm_api.grpc.pb.h"
 
 using grpc::Server;
@@ -34,15 +35,16 @@ void RunServer();
 class PubSubClient {
     public:
     PubSubClient(std::shared_ptr<Channel> channel);
-    std::unique_ptr<ClientReader<Message>> Subscribe(const int topic, const std::string& name);
+    std::unique_ptr<ClientReader<Message>> Subscribe(const int topic);
     void Publish(const int topic, const std::string& content);
-    void UnSubscribe(const int topic, const std::string& name);
+    void UnSubscribe(const int topic);
     std::string ReadFrom(std::unique_ptr<ClientReader<Message>> &reader);
 
     private:
         std::unique_ptr<SubManager::Stub> stub_;
         bool SubFlag;
         ClientContext context;
+        std::string uuid_str;
 };
 
 #endif

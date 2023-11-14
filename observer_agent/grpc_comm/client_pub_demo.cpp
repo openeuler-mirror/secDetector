@@ -14,6 +14,7 @@
  * Description: secDetector grpc client publish demo
  */
 #include <grpcpp/grpcpp.h>
+#include <uuid/uuid.h>
 #include "comm_api.grpc.pb.h"
 
 using grpc::Channel;
@@ -30,12 +31,18 @@ using data_comm::PublishRequest;
 class PubSubClient {
     public:
     PubSubClient(std::shared_ptr<Channel> channel)
-      : stub_(SubManager::NewStub(channel)) {}
+      : stub_(SubManager::NewStub(channel)) {
+	uuid_t uuid;
+	char uuid_temp[37];
+	uuid_generate(uuid);
+	uuid_unparse(uuid, uuid_temp);
+	uuid_str = std::string(uuid_temp);
+      }
 
-    std::unique_ptr<ClientReader<Message>> Subscribe(const int topic, const std::string& name) {
+    std::unique_ptr<ClientReader<Message>> Subscribe(const int topic) {
         SubscribeRequest request;
         request.set_topic(topic);
-        request.set_sub_name(name);
+        request.set_sub_name(uuid_str);
 
         Message msg;
         SubFlag = true;
@@ -59,10 +66,10 @@ class PubSubClient {
         }
     }
 
-    void UnSubscribe(const int topic, const std::string& name) {
+    void UnSubscribe(const int topic) {
         UnSubscribeRequest request;
         request.set_topic(topic);
-        request.set_sub_name(name);
+        request.set_sub_name(uuid_str);
 
         ClientContext unsub_context;
         Message msg;
@@ -91,6 +98,7 @@ class PubSubClient {
         std::unique_ptr<SubManager::Stub> stub_;
         bool SubFlag;
         ClientContext context;
+        std::string uuid_str;
 };
 
 int main(int argc, char** argv) {
