@@ -5,10 +5,10 @@ project(ebpf)
 add_custom_target(ebpf ALL
 	COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/.output
 	COMMAND bpftool btf dump file /sys/kernel/btf/vmlinux format c > ${CMAKE_CURRENT_BINARY_DIR}/.output/vmlinux.h
-	COMMAND clang -g -O2 -target bpf -D__TARGET_ARCH_x86 -c ${CMAKE_CURRENT_SOURCE_DIR}/fentry.bpf.c -o ${CMAKE_CURRENT_BINARY_DIR}/.output/fentry.bpf.o
+	COMMAND clang -g -O2 -target bpf -D__TARGET_ARCH_x86 -I${CMAKE_CURRENT_BINARY_DIR}/.output -c ${CMAKE_CURRENT_SOURCE_DIR}/fentry.bpf.c -o ${CMAKE_CURRENT_BINARY_DIR}/.output/fentry.bpf.o
 	COMMAND bpftool gen skeleton ${CMAKE_CURRENT_BINARY_DIR}/.output/fentry.bpf.o > ${CMAKE_CURRENT_BINARY_DIR}/.output/fentry.skel.h
-	COMMAND cc -g -Wall -I${CMAKE_CURRENT_BINARY_DIR}/.output -I${CMAKE_CURRENT_SOURCE_DIR} -c ${CMAKE_CURRENT_SOURCE_DIR}/fentry.c -o ${CMAKE_CURRENT_BINARY_DIR}/.output/fentry.o
-	COMMAND cc -g -Wall ${CMAKE_CURRENT_BINARY_DIR}/.output/fentry.o /usr/lib64/libbpf.a   -lelf -lz -o fentry
+	COMMAND cc -g -Wall -fPIC -I${CMAKE_CURRENT_BINARY_DIR}/.output -I${CMAKE_CURRENT_SOURCE_DIR} -c ${CMAKE_CURRENT_SOURCE_DIR}/fentry.c -o ${CMAKE_CURRENT_BINARY_DIR}/.output/fentry.o
 )
 
-
+add_executable(test_fentry ${CMAKE_CURRENT_SOURCE_DIR}/test_fentry.c)
+target_link_libraries(test_fentry ${CMAKE_CURRENT_BINARY_DIR}/.output/fentry.o z elf bpf)
