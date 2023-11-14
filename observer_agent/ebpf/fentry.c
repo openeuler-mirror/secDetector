@@ -8,8 +8,10 @@
 #include <string.h>
 #include <errno.h>
 #include <sys/resource.h>
+#include <linux/types.h>
 #include <bpf/libbpf.h>
 #include "fentry.skel.h"
+#include "fentry.h"
 
 static int libbpf_print_fn(enum libbpf_print_level level, const char *format, va_list args)
 {
@@ -18,14 +20,26 @@ static int libbpf_print_fn(enum libbpf_print_level level, const char *format, va
 
 static volatile sig_atomic_t stop;
 
-void sig_int(int signo)
+static int handle_event(void *ctx, void *data, size_t data_sz)
+{
+	const struct ebpf_event *e = data;
+	printf("timestamp:%llu event_name:%s exe:%s pid:%u tgid:%u uid:%u gid:%u comm:%s"
+	       " sid:%u ppid:%u pgid:%u pcomm:%s nodename:%s pns:%u root_pns:%u",
+		       e->timestamp, e->event_name, e->exe, e->pid, e->tgid, e->uid, e->gid, e->comm, 
+		       e->sid, e->ppid, e->pgid, e->pcomm, e->nodename, e->pns, e->root_pns);
+	printf(" exit_code: %u\n", e->process_info.exit_code);
+	return 0;
+}
+
+void stop_ebpf_prog()
 {
 	stop = 1;
 }
 
-int main(int argc, char **argv)
+int start_and_poll_ebpf_prog()
 {
 	struct fentry_bpf *skel;
+	struct ring_buffer *rb = NULL;
 	int err;
 
 	/* Set up libbpf errors and debug info callback */
@@ -45,20 +59,27 @@ int main(int argc, char **argv)
 		goto cleanup;
 	}
 
-	if (signal(SIGINT, sig_int) == SIG_ERR) {
-		fprintf(stderr, "can't set signal handler: %s\n", strerror(errno));
+	rb = ring_buffer__new(bpf_map__fd(skel->maps.rb), handle_event, NULL, NULL);
+	if (!rb) {
+		err = -1;
+		fprintf(stderr, "Failed to create ring buffer\n");
 		goto cleanup;
 	}
 
-	printf("Successfully started! Please run `sudo cat /sys/kernel/debug/tracing/trace_pipe` "
-	       "to see output of the BPF programs.\n");
-
 	while (!stop) {
-		fprintf(stderr, ".");
-		sleep(1);
+		err = ring_buffer__poll(rb, -1);
+		if (err == -EINTR) {
+			err = 0;
+			break;
+		}
+		if (err < 0) {
+			fprintf(stderr, "poll failed, r:%d\n", err);
+			break;
+		}
 	}
 
 cleanup:
+	ring_buffer__free(rb);
 	fentry_bpf__destroy(skel);
 	return -err;
 }
