@@ -164,7 +164,7 @@ error:
 }
 EXPORT_SYMBOL_GPL(secDetector_module_register);
 
-void secDetector_init_manager(void)
+int secDetector_init_manager(void)
 {
-	init_secDetector_hook();
+	return init_secDetector_hook();
 }

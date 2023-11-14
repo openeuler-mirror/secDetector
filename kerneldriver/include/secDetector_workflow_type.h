@@ -30,6 +30,8 @@ union workflow_func {
 	void (*func_wf)(struct secDetector_workflow *);
 	int (*kprobe_func)(struct secDetector_workflow *,
 				struct kprobe *, struct pt_regs *);
+	int (*lsm_inode_mkdir_func)(struct secDetector_workflow *,
+				struct inode *, struct dentry *, umode_t);
 };
 
 typedef struct secDetector_module secDetector_module_t;

@@ -12,7 +12,7 @@
 static int vfs_unlink_handler(struct kprobe *p, struct pt_regs *regs)
 {
 	int ret;
-	do_secDetector_hook_callback(kprobe_func, KPROBE_VFS_UNLINK, &ret,
+	do_secDetector_hook_callback_valid_ret(kprobe_func, KPROBE_VFS_UNLINK, &ret,
 				     PARAMS(p, regs));
 	return 0;
 }
@@ -20,7 +20,7 @@ static int vfs_unlink_handler(struct kprobe *p, struct pt_regs *regs)
 static int sys_memfd_create_handler(struct kprobe *p, struct pt_regs *regs)
 {
 	int ret;
-	do_secDetector_hook_callback(kprobe_func, KPROBE_MEMFD_CREATE, &ret,
+	do_secDetector_hook_callback_valid_ret(kprobe_func, KPROBE_MEMFD_CREATE, &ret,
 				     PARAMS(p, regs));
 	return 0;
 }

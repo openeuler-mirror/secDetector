@@ -4,6 +4,7 @@ obj-m := secDetector_core.o
 
 secDetector_core-objs += hook_unit/secDetector_hook_tracepoint.o
 secDetector_core-objs += hook_unit/secDetector_hook_kprobe.o
+secDetector_core-objs += hook_unit/secDetector_hook_lsm.o
 secDetector_core-objs += hook_unit/secDetector_hook.o
 secDetector_core-objs += collect_unit/secDetector_collect.o
 secDetector_core-objs += collect_unit/secDetector_function_switch.o
