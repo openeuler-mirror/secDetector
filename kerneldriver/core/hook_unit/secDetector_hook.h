@@ -20,6 +20,10 @@ extern int insert_kprobe_hook(struct secDetector_workflow *workflow);
 extern int delete_kprobe_hook(struct secDetector_workflow *workflow);
 extern bool kprobe_exists(struct secDetector_workflow *workflow);
 
+extern int insert_lsm_hook(struct secDetector_workflow *workflow);
+extern int delete_lsm_hook(struct secDetector_workflow *workflow);
+extern bool lsm_exists(struct secDetector_workflow *workflow);
+
 extern int insert_tracepoint_hook(struct secDetector_workflow *workflow);
 extern int delete_tracepoint_hook(struct secDetector_workflow *workflow);
 extern bool tracepoint_exists(struct secDetector_workflow *workflow);
@@ -35,7 +39,8 @@ struct secDetector_timer {
 
 extern int insert_callback(struct secDetector_workflow *workflow);
 extern int delete_callback(struct secDetector_workflow *workflow);
-extern void init_secDetector_hook(void);
+extern int init_secDetector_hook(void);
+int init_lsm_hook(void);
 
 // for timer
 #define _do_secDetector_callback(func, callback_list, args)                    \
@@ -72,6 +77,28 @@ extern void init_secDetector_hook(void);
 
 #define do_secDetector_hook_callback(func, id, sec_ret, args)                  \
 	_do_secDetector_callback_atomic(func, secDetector_hook_array[id],      \
+					sec_ret, PARAMS(args))
+
+
+//for kprobe, lsm
+#define _do_secDetector_callback_atomic_vr(func, callback_list, sec_ret, args)    \
+	do {                                                                   \
+		struct secDetector_workflow *workflow;                         \
+		rcu_read_lock();                                               \
+		list_for_each_entry_rcu (workflow, &(callback_list), list) {   \
+			if (atomic_read(&workflow->enabled) &&                 \
+			    atomic_read(&workflow->module->enabled)) {         \
+				int ___func_ret =                              \
+					workflow->workflow_func.func(          \
+						workflow, PARAMS(args));       \
+				*sec_ret = ___func_ret;                \
+			}                                                      \
+		}                                                              \
+		rcu_read_unlock();                                             \
+	} while (0)
+
+#define do_secDetector_hook_callback_valid_ret(func, id, sec_ret, args)                  \
+	_do_secDetector_callback_atomic_vr(func, secDetector_hook_array[id],      \
 					sec_ret, PARAMS(args))
 
 #endif

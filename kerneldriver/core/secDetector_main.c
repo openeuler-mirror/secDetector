@@ -19,7 +19,12 @@ MODULE_PARM_DESC(log_size, "log size");
 static int __init secDetector_init(void)
 {
 	int ret;
-	secDetector_init_manager();
+	ret = secDetector_init_manager();
+	if (ret != 0) {
+		pr_err("[secDetector] init manager failed\n");
+		return ret;
+	}
+
 	g_root_dir = proc_mkdir_mode("secDetector", 0500, NULL);
 	if (g_root_dir == NULL) {
 		pr_err("[secDetector] make proc dir failed\n");
