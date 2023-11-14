@@ -92,14 +92,14 @@ int handle_exec(struct trace_event_raw_sched_process_exec *ctx)
 		return 0;
 
 	get_common_info(e);
-	strcpy(e->event_name, "sched_process_exec");
+	__builtin_memcpy(e->event_name, "sched_process_exec", sizeof("sched_process_exec"));
 
 	bpf_ringbuf_submit(e, 0);
 	return 0;
 }
 
 SEC("tp/sched/sched_process_exit")
-int handle_exit(struct trace_event_raw_sched_process_exit *ctx)
+int handle_exit(void)
 {
 	struct ebpf_event *e = NULL;
 	u32 exit_code = 0;
@@ -109,7 +109,7 @@ int handle_exit(struct trace_event_raw_sched_process_exit *ctx)
 		return 0;
 
 	get_common_info(e);
-	strcpy(e->event_name, "sched_process_exit");
+	__builtin_memcpy(e->event_name, "sched_process_exit", sizeof("sched_process_exit"));
 	exit_code = BPF_CORE_READ((struct task_struct *)bpf_get_current_task(), exit_code);
 	e->process_info.exit_code = (exit_code >> 8) & 0xff;
 	bpf_ringbuf_submit(e, 0);
@@ -126,7 +126,7 @@ int handle_fork(struct trace_event_raw_sched_process_fork *ctx)
 		return 0;
 
 	get_common_info(e);
-	strcpy(e->event_name, "sched_process_fork");
+	__builtin_memcpy(e->event_name, "sched_process_fork", sizeof("sched_process_fork"));
 	bpf_ringbuf_submit(e, 0);
 	return 0;
 }
