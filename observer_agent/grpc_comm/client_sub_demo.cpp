@@ -14,6 +14,7 @@
  * Description: secDetector grpc client subscribe demo
  */
 #include <grpcpp/grpcpp.h>
+#include <uuid/uuid.h>
 #include "comm_api.grpc.pb.h"
 
 using grpc::Channel;
@@ -30,12 +31,18 @@ using data_comm::PublishRequest;
 class PubSubClient {
     public:
     PubSubClient(std::shared_ptr<Channel> channel)
-      : stub_(SubManager::NewStub(channel)) {}
+      : stub_(SubManager::NewStub(channel)) {
+	uuid_t uuid;
+	char uuid_temp[37];
+	uuid_generate(uuid);
+	uuid_unparse(uuid, uuid_temp);
+	uuid_str = std::string(uuid_temp);
+      }
 
-    std::unique_ptr<ClientReader<Message>> Subscribe(const int topic, const std::string& name) {
+    std::unique_ptr<ClientReader<Message>> Subscribe(const int topic) {
         SubscribeRequest request;
         request.set_topic(topic);
-        request.set_sub_name(name);
+        request.set_sub_name(uuid_str);
 
         Message msg;
         SubFlag = true;
@@ -59,10 +66,10 @@ class PubSubClient {
         }
     }
 
-    void UnSubscribe(const int topic, const std::string& name) {
+    void UnSubscribe(const int topic) {
         UnSubscribeRequest request;
         request.set_topic(topic);
-        request.set_sub_name(name);
+        request.set_sub_name(uuid_str);
 
         ClientContext unsub_context;
         Message msg;
@@ -91,6 +98,7 @@ class PubSubClient {
         std::unique_ptr<SubManager::Stub> stub_;
         bool SubFlag;
         ClientContext context;
+        std::string uuid_str;
 };
 
 int main(int argc, char** argv) {
@@ -98,18 +106,18 @@ int main(int argc, char** argv) {
     PubSubClient client(grpc::CreateChannel(
         server_address, grpc::InsecureChannelCredentials()));
 
-    if (argc != 3) {
-        std::cout << "[Usage] ./client_sub_demo topic_num suber_name" << std::endl;
+    if (argc != 2) {
+        std::cout << "[Usage] ./client_sub_demo topic_num" << std::endl;
     }
 
-    std::unique_ptr<ClientReader<Message>> cli_reader = client.Subscribe(std::stoi(argv[1]), argv[2]);
+    std::unique_ptr<ClientReader<Message>> cli_reader = client.Subscribe(std::stoi(argv[1]));
     std::string some_data = client.ReadFrom(cli_reader);
     std::cout << "whz: " << some_data << std::endl;
     while (some_data != "" && some_data != "end") {
         some_data = client.ReadFrom(cli_reader);
         std::cout << "loop whz: " << some_data << std::endl;
     }
-    client.UnSubscribe(std::stoi(argv[1]), argv[2]);
+    client.UnSubscribe(std::stoi(argv[1]));
 
     return 0;
 }
