@@ -1,15 +1,15 @@
 # make secDetector_core
 
 obj-m += secDetector_memory_corruption.o
-obj-m += secDetector_task_block.o
-obj-m += secDetector_file_block.o
+#obj-m += secDetector_task_block.o
+#obj-m += secDetector_file_block.o
 obj-m += secDetector_kmodule_baseline.o
 # obj-m += secDetector_kprobe_example.o
 # obj-m += secDetector_lsm_example.o
 
 secDetector_memory_corruption-objs := memory_corruption/secDetector_memory_corruption.o memory_corruption/secDetector_mc_kmodule_list.o
-secDetector_task_block-objs := task_block/secDetector_task_block.o
-secDetector_file_block-objs := file_block/secDetector_file_block.o
+#secDetector_task_block-objs := task_block/secDetector_task_block.o
+#secDetector_file_block-objs := file_block/secDetector_file_block.o
 secDetector_kmodule_baseline-objs := kmodule_baseline/secDetector_kmodule_baseline.o kmodule_baseline/secDetector_mc_kmodule_baseline.o
 # secDetector_kprobe_example-objs := kprobe_example/secDetector_kprobe_example.o
 # secDetector_lsm_example-objs := lsm_example/secDetector_lsm_example.o

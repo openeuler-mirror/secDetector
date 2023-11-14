@@ -8,7 +8,6 @@
 
 #include <trace/events/sched.h>
 #include <trace/events/signal.h>
-#include <linux/secdetector.h>
 #include "secDetector_hook.h"
 
 typedef int (*REGFUNC)(void *, void *);
@@ -22,37 +21,8 @@ struct secDetector_tracepoint {
 	UNREGFUNC unregister_func;
 };
 
-static void file_event_handler(void *cb_data __attribute__((unused)),
-			       struct secdetector_file *file, int flag,
-			       int *sec_ret)
-{
-	do_secDetector_hook_callback(file_event, TRACEPOINT_FILE_EVENT, sec_ret,
-				     PARAMS(file, flag));
-}
-
-static void task_event_handler(void *cb_data __attribute__((unused)),
-			       struct secdetector_task *task, int flag,
-			       int *sec_ret)
-{
-	do_secDetector_hook_callback(task_event, TRACEPOINT_TASK_EVENT, sec_ret,
-				     PARAMS(task, flag));
-}
 
 static struct secDetector_tracepoint secDetector_tracepoint_hook_functions[] = {
-	[TRACEPOINT_TASK_EVENT] = {
-		.handler = task_event_handler,
-		.register_func =
-			tracepoint_register_call(secdetector_chktaskevent),
-		.unregister_func =
-			tracepoint_unregister_call(secdetector_chktaskevent),
-	},
-	[TRACEPOINT_FILE_EVENT] = {
-		.handler = file_event_handler,
-		.register_func =
-			tracepoint_register_call(secdetector_chkfsevent),
-		.unregister_func =
-			tracepoint_unregister_call(secdetector_chkfsevent),
-	},
 	[HOOKEND] = {
 		.handler = NULL,
 		.register_func = NULL,
