@@ -71,7 +71,7 @@ secDetector在架构上分为四个部分：SDK、Service、检测特性集合ca
 
 
 ## 安装教程
-1. yum install clang libbpf-devel bpftool grpc-devel cmake
+1. yum install gcc gcc-c++ clang libbpf-devel bpftool grpc-devel grpc-plugins cmake make protobuf-devel c-ares-devel
 2. mkdir -p observer_agent/build && cd observer_agent/build
 3. cmake .. && make
 
