@@ -46,13 +46,13 @@ client: comm_api.pb.o comm_api.grpc.pb.o client.o
 server: comm_api.pb.o comm_api.grpc.pb.o server.o
 	@echo "only compile server don't link"
 
-client_pub_demo: comm_api.pb.o comm_api.grpc.pb.o client_pub_demo.o
+client_pub_demo: comm_api.pb.o comm_api.grpc.pb.o client.o client_pub_demo.o
 	$(CXX) $^ $(LDFLAGS) -o $@
 
-client_sub_demo: comm_api.pb.o comm_api.grpc.pb.o client_sub_demo.o
+client_sub_demo: comm_api.pb.o comm_api.grpc.pb.o client.o client_sub_demo.o
 	$(CXX) $^ $(LDFLAGS) -o $@
 
-server_demo: comm_api.pb.o comm_api.grpc.pb.o server_demo.o
+server_demo: comm_api.pb.o comm_api.grpc.pb.o server.o server_demo.o
 	$(CXX) $^ $(LDFLAGS) -o $@
 
 %.grpc.pb.cc: %.proto
