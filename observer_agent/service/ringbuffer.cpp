@@ -36,20 +36,22 @@
 #define WRITE_ONCE(x, v) (*(volatile typeof(x) *)&x) = (v)
 #define barrier() asm volatile("" ::: "memory")
 
-#define smp_load_acquire(p)                                                    \
-    ({                                                                         \
-        typeof(*p) ___p = READ_ONCE(*p);                                       \
-        barrier();                                                             \
-        ___p;                                                                  \
+#define smp_load_acquire(p)                                                                                            \
+    ({                                                                                                                 \
+        typeof(*p) ___p = READ_ONCE(*p);                                                                               \
+        barrier();                                                                                                     \
+        ___p;                                                                                                          \
     })
 
-#define smp_store_release(p, v)                                                \
-    do {                                                                       \
-        barrier();                                                             \
-        WRITE_ONCE(*p, v);                                                     \
+#define smp_store_release(p, v)                                                                                        \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        barrier();                                                                                                     \
+        WRITE_ONCE(*p, v);                                                                                             \
     } while (0)
 
-struct secDetector_ringbuffer {
+struct secDetector_ringbuffer
+{
     unsigned long *consumer_pos;
     unsigned long *producer_pos;
     char *data;
@@ -59,7 +61,8 @@ struct secDetector_ringbuffer {
 
 static struct secDetector_ringbuffer sec_rb;
 
-static inline int roundup_len(__u32 len) {
+static inline int roundup_len(__u32 len)
+{
     len <<= 2;
     len >>= 2;
     len += BPF_RINGBUF_HDR_SZ;
@@ -67,27 +70,29 @@ static inline int roundup_len(__u32 len) {
     return (len + 7) / 8 * 8;
 }
 
-int secDetector_ringbuf_attach(void) {
+int secDetector_ringbuf_attach(void)
+{
     int fd;
     int err;
 
     fd = open(RINGBUF_DEV, O_RDWR);
-    if (fd == -1) {
+    if (fd == -1)
+    {
         printf("%s open failed, errno:%d\n", RINGBUF_DEV, errno);
         return -1;
     }
 
-    sec_rb.consumer_pos = (unsigned long *)mmap(
-        NULL, PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-    if (sec_rb.consumer_pos == MAP_FAILED) {
+    sec_rb.consumer_pos = (unsigned long *)mmap(NULL, PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    if (sec_rb.consumer_pos == MAP_FAILED)
+    {
         err = errno;
         printf("failed to map consumer_pos err:%d\n", err);
         close(fd);
         return err;
     }
-    sec_rb.producer_pos = (unsigned long *)mmap(
-        NULL, PAGE_SIZE + 2 * rb_datasz, PROT_READ, MAP_SHARED, fd, PAGE_SIZE);
-    if (sec_rb.producer_pos == MAP_FAILED) {
+    sec_rb.producer_pos = (unsigned long *)mmap(NULL, PAGE_SIZE + 2 * rb_datasz, PROT_READ, MAP_SHARED, fd, PAGE_SIZE);
+    if (sec_rb.producer_pos == MAP_FAILED)
+    {
         err = errno;
         printf("failed to map producer_pos err:%d\n", err);
         close(fd);
@@ -100,7 +105,8 @@ int secDetector_ringbuf_attach(void) {
     return 0;
 }
 
-void secDetector_ringbuf_detach(void) {
+void secDetector_ringbuf_detach(void)
+{
     if (!sec_rb.inited)
         return;
 
@@ -114,7 +120,8 @@ void secDetector_ringbuf_detach(void) {
     sec_rb.inited = false;
 }
 
-int secDetector_ringbuf_poll(poll_cb cb) {
+int secDetector_ringbuf_poll(poll_cb cb)
+{
     int r;
     bool got_new_data;
     unsigned long cons_pos, prod_pos;
@@ -124,26 +131,31 @@ int secDetector_ringbuf_poll(poll_cb cb) {
 
     r = poll(&sec_rb.poll_fd, 1, -1);
 
-    if (r == -1) {
+    if (r == -1)
+    {
         err = errno;
         printf("poll err:%d\n", err);
         return -1;
     }
 
-    if (r == 0) {
+    if (r == 0)
+    {
         printf("poll timeout\n");
         return -1;
     }
-    if (r != 1) {
+    if (r != 1)
+    {
         printf("poll failed, r:%d\n", r);
         return -1;
     }
 
     cons_pos = smp_load_acquire(sec_rb.consumer_pos);
-    do {
+    do
+    {
         got_new_data = false;
         prod_pos = smp_load_acquire(sec_rb.producer_pos);
-        while (cons_pos < prod_pos) {
+        while (cons_pos < prod_pos)
+        {
             len_ptr = (int32_t *)(sec_rb.data + (cons_pos & rb_mask));
             len = smp_load_acquire(len_ptr);
 
@@ -154,10 +166,12 @@ int secDetector_ringbuf_poll(poll_cb cb) {
             got_new_data = true;
             cons_pos += roundup_len(len);
 
-            if ((len & BPF_RINGBUF_DISCARD_BIT) == 0) {
+            if ((len & BPF_RINGBUF_DISCARD_BIT) == 0)
+            {
                 sample = (char *)len_ptr + BPF_RINGBUF_HDR_SZ;
                 err = cb(sample, len);
-                if (err < 0) {
+                if (err < 0)
+                {
                     /* update consumer pos and bail out */
                     smp_store_release(sec_rb.consumer_pos, cons_pos);
                     return err;
