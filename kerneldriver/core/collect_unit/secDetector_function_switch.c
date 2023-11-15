@@ -10,7 +10,9 @@
 #include <linux/kernel.h>
 #include <linux/slab.h>
 #include <linux/string.h>
+#if defined(__x86_64__)
 #include <asm/processor-flags.h>
+#endif
 #if defined(__aarch64__)
 #include <asm/sysreg.h>
 #endif
@@ -100,7 +102,7 @@ static void collect_WXN_tag(struct list_head *ret_list)
 		return;
 
 	#if defined(__aarch64__)
-	asm volatile ("mrs %0 sctlr_el1" : "=r" (value));
+	asm volatile ("mrs %0, sctlr_el1" : "=r" (value));
 	value = (value & (1UL << 19))? 1 : 0;
 	#endif
 
