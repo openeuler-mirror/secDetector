@@ -25,61 +25,6 @@ static PubSubClient g_client(grpc::CreateChannel(server_address, grpc::InsecureC
 using Readmap = map<void *, unique_ptr<ClientReader<Message>>>;
 static Readmap g_reader_map;
 
-PubSubClient::PubSubClient(shared_ptr<Channel> channel)
-	: stub_(SubManager::NewStub(channel)) {}
-
-unique_ptr<ClientReader<Message>> PubSubClient::Subscribe(const int topic) 
-{
-	SubscribeRequest request;
-	request.set_topic(topic);
-
-	return stub_->Subscribe(&context, request);
-}
-
-void PubSubClient::Publish(const int topic, const string &context)
-{
-	PublishRequest request;
-	request.set_topic(topic);
-	request.set_data(context);
-
-	ClientContext pub_context;
-	Message msg;
-
-	grpc::Status status = stub_->Publish(&pub_context, request, &msg);
-
-	if (!status.ok()) {
-		cerr << "Publish Error: " << status.error_code() << ": " << status.error_message() << endl;
-	}
-}
-
-void PubSubClient::UnSubscribe(const int topic)
-{
-	UnSubscribeRequest request;
-	request.set_topic(topic);
-
-	ClientContext context;
-	Message msg;
-	grpc::Status status = stub_->UnSubscribe(&context, request, &msg);
-
-	SubFlag = false;
-
-	if (!status.ok()) {
-                cerr << "UnSubscribe Error: " << status.error_code() << ": " << status.error_message() << endl;
-        }
-
-	cout << "UnSubsccribe Received: " << msg.text() << endl;
-}
-
-string PubSubClient::ReadFrom(unique_ptr<ClientReader<Message>> &reader)
-{
-	Message msg;
-	reader->Read(&msg);
-	cout << "Received: " << msg.text() << endl;
-	return msg.text();
-}
-
-
-
 #ifdef __cplusplus
 extern "C" {
 #endif
