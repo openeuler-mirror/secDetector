@@ -14,6 +14,6 @@ target_link_directories(secDetectord PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/ebpf)
 
 target_link_libraries(secDetectord ${CMAKE_CURRENT_BINARY_DIR}/ebpf/.output/fentry.o)
 target_link_libraries(secDetectord ${GRPC_PATH}/comm_api.pb.o ${GRPC_PATH}/comm_api.grpc.pb.o)
-target_link_libraries(secDetectord protobuf grpc++ grpc absl_synchronization)
+target_link_libraries(secDetectord protobuf grpc++ grpc absl_synchronization uuid)
 target_link_libraries(secDetectord z elf bpf)
 
