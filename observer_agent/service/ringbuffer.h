@@ -18,9 +18,10 @@
 #include <sys/types.h>
 
 typedef int (*poll_cb)(void *sample, size_t len);
-struct response_rb_entry {
-	int type;
-	char text[];
+struct response_rb_entry
+{
+    int type;
+    char text[];
 };
 
 extern int secDetector_ringbuf_attach(void);

@@ -13,75 +13,158 @@
  * Create: 2023-09-25
  * Description: secDetector main entry
  */
-#include "ringbuffer.h"
 #include "../grpc_comm/grpc_api.h"
+#include "ebpf/ebpf_types.h"
+#include "ebpf/fentry.h"
+#include "ringbuffer.h"
 #include <errno.h>
+#include <iostream>
+#include <sstream>
 #include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <sys/types.h>
-#include <unistd.h>
-#include <syslog.h>
-#include <time.h>
 #include <thread>
+#include <limits>
 
+using data_comm::Message;
+using data_comm::PublishRequest;
+using data_comm::SubManager;
+using data_comm::SubscribeRequest;
+using data_comm::UnSubscribeRequest;
+using grpc::Channel;
+using grpc::ClientContext;
+using grpc::ClientReader;
 using grpc::Server;
 using grpc::ServerBuilder;
 using grpc::ServerContext;
 using grpc::ServerWriter;
-using grpc::Channel;
-using grpc::ClientContext;
-using grpc::ClientReader;
-using data_comm::Message;
-using data_comm::SubManager;
-using data_comm::SubscribeRequest;
-using data_comm::UnSubscribeRequest;
-using data_comm::PublishRequest;
 
-static volatile bool exiting = false;
-static void sig_handler(int sig) { exiting = true; }
+static volatile sig_atomic_t exiting = 0;
+static void sig_handler(int sig)
+{
+    exiting = true;
+}
+static bool debug = false;
 
-static int ringbuf_cb(struct response_rb_entry *entry, size_t entry_size) {
-    if (entry == NULL || entry_size <= sizeof(struct response_rb_entry))
-        return -EINVAL;   
+static void push_log(int type, const std::string &content)
+{
+    // push to console if debug
+    if (debug)
+    {
+        std::cout << "type:" << type << " content:" << content << std::endl;
+    }
 
-    syslog(LOG_INFO, "type:%d, text:%s\n", entry->type, entry->text);
-    /* TODO: you can add function there */
+    // push to grpc
     std::string server_address("unix:///var/run/secDetector.sock");
-    PubSubClient client(grpc::CreateChannel(
-        server_address, grpc::InsecureChannelCredentials()));
-        // topic need extra args
-    client.Publish(entry->type, entry->text);
+    PubSubClient client(grpc::CreateChannel(server_address, grpc::InsecureChannelCredentials()));
+    client.Publish(type, content);
+}
+
+static void set_signal_handler(void)
+{
+    struct sigaction action;
+    action.sa_handler = sig_handler;
+    action.sa_flags = 0;
+    sigemptyset(&action.sa_mask);
+    sigaction(SIGTERM, &action, NULL);
+    sigaction(SIGINT, &action, NULL);
+}
+
+static int ringbuf_cb(struct response_rb_entry *entry, size_t entry_size)
+{
+    if (entry == NULL || entry_size <= sizeof(struct response_rb_entry))
+        return -EINVAL;
+    push_log(entry->type, entry->text);
     return 0;
 }
 
-int main() {
+static std::string FindProcessPathFromPid(int pid)
+{
+	char *path = NULL;
+	std::string link = "/proc/" + std::to_string(pid) + "/exe";
+	std::string exe = "null";
+
+	path = new char[PATH_MAX];
+	memset(path, 0, PATH_MAX);
+	ssize_t len = readlink(link.c_str(), path, PATH_MAX);
+	if (len != -1)
+		exe = std::string(path);
+	delete path;
+	return exe;
+}
+
+static int ebpf_cb(void *ctx, void *data, size_t data_sz)
+{
+    std::ostringstream ss;
+    struct ebpf_event *e = (ebpf_event *)data;
+
+    ss << "timestamp:" << e->timestamp << " event_name:" << e->event_name <<
+	    " exe:" << FindProcessPathFromPid(e->pid) << " pid:" << e->pid << " tgid:" << e->tgid <<
+	    " uid:" << e->uid << " gid:" << e->gid << " comm:" << e->comm <<
+	    " sid:" << e->sid << " ppid:" << e->ppid << " pcomm:" << e->pcomm <<
+	    " nodename:" << e->nodename << " pns:" << e->pns << " root_pns:" << e->pns;
+    push_log(e->type, ss.str());
+    return 0;
+}
+
+int main(int argc, char *argv[])
+{
     int r;
+    int opt;
 
-    signal(SIGINT, sig_handler);
-    signal(SIGTERM, sig_handler);
+    set_signal_handler();
+    while ((opt = getopt(argc, argv, "d")) != -1)
+    {
+        switch (opt)
+        {
+        case 'd':
+            debug = true;
+            break;
+        }
+    }
 
-    r = daemon(0, 0);
-    if (r == -1) {
-        printf("daemon failed, r:%d\n");
-        exit(EXIT_FAILURE);
+    if (debug)
+    {
+        printf("Run in debug mode, log will be printed to console too.\n");
+    }
+    else
+    {
+        r = daemon(0, 0);
+        if (r == -1)
+        {
+            printf("daemon failed, r:%d\n");
+            exit(EXIT_FAILURE);
+        }
     }
 
     r = secDetector_ringbuf_attach();
-    if (r != 0) {
-        printf("cannot attach to ringbuffer, r:%d\n", r);
+    if (r != 0)
+    {
+        std::cerr << "cannot attach to ringbuffer, r:" << r << std::endl;
         exit(EXIT_FAILURE);
     }
 
-    std::thread t = std::thread(RunServer);
+    std::thread thread_grpc = std::thread(RunServer);
+    std::thread thread_ebpf = std::thread(StartProcesseBPFProg, ebpf_cb);
 
-    while (!exiting) {
-        secDetector_ringbuf_poll((poll_cb)ringbuf_cb);
+    while (exiting == 0)
+    {
+        r = secDetector_ringbuf_poll((poll_cb)ringbuf_cb);
+        if (r != 0)
+        {
+            std::cerr << "secDetector_ringbuf_poll failed, r:" << r << std::endl;
+            break;
+        }
     }
 
     secDetector_ringbuf_detach();
-    t.join();
+    std::cout << "Wait grpc server shutdown" << std::endl;
+    StopServer();
+    thread_grpc.join();
+
+    std::cout << "Wait ebpf program detached" << std::endl;
+    StopProcesseBPFProg();
+    thread_ebpf.join();
     return 0;
 }
