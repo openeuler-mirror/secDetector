@@ -71,19 +71,47 @@ secDetector在架构上分为四个部分：SDK、Service、检测特性集合ca
 
 
 ## 安装教程
-1. yum install gcc gcc-c++ clang libbpf-devel bpftool grpc-devel grpc-plugins cmake make protobuf-devel c-ares-devel
+- kerneldriver
+1.安装编译依赖 #yum install kernel-devel kernel-headers
+2.core目录下执行make，并插入core模块 #insmod secDetector_core.ko
+3.cases目录下执行make，按需插入需要的模块 如 #insmod secDetector_kmodule_baseline.ko
+
+- observer_agent
+1. 安装编译依赖 #yum install gcc gcc-c++ clang libbpf-devel bpftool grpc-devel grpc-plugins cmake make protobuf-devel c-ares-devel libuuid-devel
 2. mkdir -p observer_agent/build && cd observer_agent/build
 3. cmake .. && make
+4. 执行服务程序 # ./secDetectord &
+
+- lib
+1、mkdir -p lib/build && cd lib/build
+2、cmake .. && make
+3、建议库文件部署到/usr/lib64/secDetector/libsecDetectorsdk.so
+
+以上3部分按顺序构建并部署完之后，可以调用libsecDetectorsdk.so提供的api接口开发应用
+
+在支持rpm包安装环境，直接安装openEuler版本中的secDetector-xxx.rpm和开发包secDetector-devel-xxx.rpm，即可完成部署
 
 ## 使用说明
 
 
 
-\1.  xxxx
+api接口说明
 
-\2.  xxxx
+接口名称	void *secSub(const int topic)
+接口描述	注册订阅接口
+参数	“topic”:注册的事件类型，具体可见” /usr/include/secDetector/secDetector_sdk.h”中定义
+输出	返回读取事件的指针
 
-\3.  xxxx
+接口名称	void secUnsub(const int topic, void *reader)
+接口描述	注销订阅接口
+参数	“topic”:注销的事件类型， “reader”:注销的读事件指针
+输出	无
+注意事项	当前会全部取消，不支持指定reader取消
+
+接口名称	void secReadFrom(void *reader, char *data, int data_len)
+接口描述	读事件信息接口
+参数	“reader”:读事件指针，”data”: 获取事件的Buf，”data_len”：buf的大小
+输出	无
 
 
 
