@@ -24,6 +24,8 @@ extern "C"
 void StopProcesseBPFProg();
 int StartProcesseBPFProg(ring_buffer_sample_fn cb);
 
+void StopFileBPFProg();
+int StartFileBPFProg(ring_buffer_sample_fn cb);
 #ifdef __cplusplus
 }
 #endif

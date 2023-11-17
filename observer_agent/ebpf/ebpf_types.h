@@ -43,6 +43,9 @@ struct process_info
 struct file_info
 {
     char filename[MAX_TEXT_SIZE];
+    char name[MAX_TEXT_SIZE];
+    char value[MAX_TEXT_SIZE];
+    char old_value[MAX_TEXT_SIZE];
 };
 
 struct ebpf_event
@@ -66,7 +69,7 @@ struct ebpf_event
     unsigned root_pns;
     union {
         struct process_info process_info;
-        struct file_info info;
+        struct file_info file_info;
     };
 };
 

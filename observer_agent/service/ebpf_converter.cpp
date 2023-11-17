@@ -75,10 +75,25 @@ static std::string convert_destroy_process(struct ebpf_event *e)
     return extract_common_info(e);
 }
 
+static std::string convert_common_file(struct ebpf_event *e)
+{
+    return extract_common_info(e) + " filename:" + e->file_info.filename ;
+}
+
+static std::string convert_set_file_attr(struct ebpf_event *e)
+{
+    return extract_common_info(e) + " filename:" + e->file_info.filename ;
+}
+
 static std::map<int, convert_func_t> convert_funcs = {
     {CREATPROCESS, convert_creat_process},
     {DESTROYPROCESS, convert_destroy_process},
     {SETPROCESSATTR, convert_set_process_attr},
+    {CREATFILE, convert_common_file},
+    {DELFILE, convert_common_file},
+    {SETFILEATTR, convert_set_file_attr},
+    {WRITEDFILE, convert_common_file},
+    {READFILE, convert_common_file},
 };
 
 std::string ebpf_event_to_text(struct ebpf_event *e)
