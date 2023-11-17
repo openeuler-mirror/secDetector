@@ -46,6 +46,12 @@ struct process_info
         char bprm_file[MAX_FILENAME_SIZE];
         int have_bprm;
     };
+    struct
+    {
+        char filename[MAX_FILENAME_SIZE];
+        char argv[MAX_TEXT_SIZE];
+        char envp[MAX_TEXT_SIZE];
+    };
 };
 
 struct file_info
