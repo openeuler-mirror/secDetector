@@ -199,6 +199,7 @@ SEC("fentry/vfs_utimes")
 int BPF_PROG(fexit_vfs_utimes, const struct path *path, struct timespec64 *times)
 {
 	struct ebpf_event *e = NULL;
+	char name[] = "time";
 
 	RETURN_ZERO_IF_OURSELF();
 
@@ -210,6 +211,7 @@ int BPF_PROG(fexit_vfs_utimes, const struct path *path, struct timespec64 *times
 	get_common_info(e);
 	__builtin_memcpy(e->event_name, "vfs_utimes", sizeof("vfs_utimes"));
 	bpf_probe_read(e->file_info.filename, MAX_TEXT_SIZE, path->dentry->d_name.name);
+	bpf_probe_read_str(e->file_info.name, MAX_TEXT_SIZE, name);
 	bpf_ringbuf_submit(e, 0);
 	return 0;
 }
@@ -218,6 +220,7 @@ SEC("fexit/chmod_common")
 int BPF_PROG(fexit_chmod_common, const struct path *path, umode_t mode, int ret)
 {
 	struct ebpf_event *e = NULL;
+	char name[] = "chmod";
 
 	RETURN_ZERO_IF_OURSELF();
 
@@ -229,6 +232,7 @@ int BPF_PROG(fexit_chmod_common, const struct path *path, umode_t mode, int ret)
 	get_common_info(e);
 	__builtin_memcpy(e->event_name, "chmod_common", sizeof("chmod_common"));
 	bpf_probe_read(e->file_info.filename, MAX_TEXT_SIZE, path->dentry->d_name.name);
+	bpf_probe_read_str(e->file_info.name, MAX_TEXT_SIZE, name);
 	bpf_ringbuf_submit(e, 0);
 	return 0;
 }
@@ -237,6 +241,7 @@ SEC("fexit/chown_common")
 int BPF_PROG(fexit_chown_common, const struct path *path, uid_t user, gid_t group, int ret)
 {
 	struct ebpf_event *e = NULL;
+	char name[] = "chown";
 
 	RETURN_ZERO_IF_OURSELF();
 
@@ -248,6 +253,7 @@ int BPF_PROG(fexit_chown_common, const struct path *path, uid_t user, gid_t grou
 	get_common_info(e);
 	__builtin_memcpy(e->event_name, "chown_common", sizeof("chown_common"));
 	bpf_probe_read(e->file_info.filename, MAX_TEXT_SIZE, path->dentry->d_name.name);
+	bpf_probe_read_str(e->file_info.name, MAX_TEXT_SIZE, name);
 	bpf_ringbuf_submit(e, 0);
 	return 0;
 }
@@ -267,7 +273,7 @@ int BPF_PROG(fentry__vfs_setxattr_noperm, struct dentry *dentry, const char *nam
 	get_common_info(e);
 	__builtin_memcpy(e->event_name, "__vfs_setxattr_noperm", sizeof("__vfs_setxattr_noperm"));
 	bpf_probe_read(e->file_info.filename, MAX_TEXT_SIZE, dentry->d_name.name);
-	bpf_probe_read(e->file_info.name, MAX_TEXT_SIZE, name);
+	bpf_probe_read_str(e->file_info.name, MAX_TEXT_SIZE, name);
 	bpf_ringbuf_submit(e, 0);
 	return 0;
 }
@@ -276,6 +282,7 @@ SEC("fentry/__vfs_removexattr_locked")
 int BPF_PROG(fentry__vfs_removexattr_locked, struct dentry *dentry, const char *name, struct inode **delegated_inode)
 {
 	struct ebpf_event *e = NULL;
+
 	RETURN_ZERO_IF_OURSELF();
 
 	e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
@@ -286,7 +293,7 @@ int BPF_PROG(fentry__vfs_removexattr_locked, struct dentry *dentry, const char *
 	get_common_info(e);
 	__builtin_memcpy(e->event_name, "__vfs_removexattr_locked", sizeof("__vfs_removexattr_locked"));
 	bpf_probe_read(e->file_info.filename, MAX_TEXT_SIZE, dentry->d_name.name);
-	bpf_probe_read(e->file_info.name, MAX_TEXT_SIZE, name);
+	bpf_probe_read_str(e->file_info.name, MAX_TEXT_SIZE, name);
 	bpf_ringbuf_submit(e, 0);
 	return 0;
 }
@@ -297,7 +304,9 @@ int BPF_PROG(fentry_vfs_rename, struct inode *old_dir, struct dentry *old_dentry
 	unsigned int flags)
 {
 	struct ebpf_event *e = NULL;
+	char name[] = "rename";
 
+	RETURN_ZERO_IF_OURSELF();
 	e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
 	if (!e)
 		return 0;
@@ -306,6 +315,7 @@ int BPF_PROG(fentry_vfs_rename, struct inode *old_dir, struct dentry *old_dentry
 	get_common_info(e);
 	__builtin_memcpy(e->event_name, "vfs_rename", sizeof("vfs_rename"));
 	bpf_probe_read(e->file_info.filename, MAX_TEXT_SIZE, old_dentry->d_name.name);
+	bpf_probe_read_str(e->file_info.name, MAX_TEXT_SIZE, name);
 	bpf_probe_read(e->file_info.value, MAX_TEXT_SIZE, new_dentry->d_name.name);
 	bpf_probe_read(e->file_info.old_value, MAX_TEXT_SIZE, old_dentry->d_name.name);
 	bpf_ringbuf_submit(e, 0);
