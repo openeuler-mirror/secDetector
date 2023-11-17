@@ -52,5 +52,5 @@ typedef union analyze_status {
 // 	int (*save_check_func)(struct list_head *, analyze_status_t *);
 // } analyze_func_t;
 
-typedef int (*analyze_func_t)(struct list_head *, analyze_status_t *, response_data_t *);
+typedef int (*analyze_func_t)(struct list_head *, analyze_status_t *, response_data_t *, unsigned int);
 #endif

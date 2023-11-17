@@ -9,7 +9,8 @@
 #define SECDETECTOR_SAVE_CHECK_H
 #include "secDetector_analyze_type.h"
 #include "secDetector_collect_type.h"
-int analyze_save_check(struct list_head *collect_data_list, analyze_status_t *analyze_status_data, response_data_t *response_data);
+int analyze_save_check(struct list_head *collect_data_list, analyze_status_t *analyze_status_data,
+						response_data_t *response_data, unsigned int event_type);
 
 void free_analyze_status_data_sc(analyze_status_t *analyze_status_data);
 #endif

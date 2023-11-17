@@ -13,6 +13,7 @@
 #include <time.h>
 #include "secDetector_mc_kmodule_baseline.h"
 #include "secDetector_response.h"
+#include "secDetector_analyze.h"
 
 #define MODULE_LIST_MAXSIZE 0x10000
 #define NAME_LEN 4096
@@ -69,8 +70,6 @@ static void report_kmodule_baseline(void)
 	char *module_name_all = NULL;
 	char *header_msg = NULL;
 	char strtmp[] = ", ";
-	struct timespec64 ts;
-	struct tm stm;
 	int header_msg_len;
 	int ret;
 	response_data_t log;
@@ -87,14 +86,10 @@ static void report_kmodule_baseline(void)
 		return;
 	}
 
-	ktime_get_real_ts64(&ts);
-	time64_to_tm(ts.tv_sec, 0, &stm);
-	header_msg_len = scnprintf(header_msg, HEADER_MSG_LEN,
-			"time=%04ld%02d%02d%02d%02d%02d event_type=kmodulelist module_name=",
-			stm.tm_year + 1900, stm.tm_mon + 1, stm.tm_mday, stm.tm_hour, stm.tm_min, stm.tm_sec);
+	header_msg_len = get_timestamp_str(&header_msg);
 	if (header_msg_len <= 0)
 		goto out;
-
+	strcat(module_name_all, "event_type=kmodulelist module_name=");
 	list_for_each_entry_safe(get_module_name, get_module_name_next, &chkrkatt_module_list, list) {
 		if (get_module_name != NULL && get_module_name_next != NULL) {
 			/* 2: ', ' */

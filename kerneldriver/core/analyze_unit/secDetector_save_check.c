@@ -83,11 +83,13 @@ static int analyze_save_check_init(struct list_head *collect_data_list, analyze_
 
 
 
-static int analyze_save_check_normal(struct list_head *collect_data_list, analyze_status_t *analyze_status_data, response_data_t *response_data)
+static int analyze_save_check_normal(struct list_head *collect_data_list, analyze_status_t *analyze_status_data, response_data_t *response_data, unsigned int event_type)
 {
 	int data_index = 0;
 	unsigned long long measure_value;
 	struct collect_data *cd;
+	char *timestamp = NULL;
+	int timestamp_len;
 	char **response_arrays;
 	int response_array_index = 0;
 	char int_str[MAX_DIGITS];
@@ -150,11 +152,17 @@ static int analyze_save_check_normal(struct list_head *collect_data_list, analyz
 	}
 
 	if (ret == RESPONSE_REPORT) {
-		response_data->report_data.len = response_data_char_len;
+		timestamp_len = get_timestamp_str(&timestamp);
+		response_data->report_data.type = event_type;
+		response_data->report_data.len = response_data_char_len + timestamp_len;
 		response_data->report_data.text = kmalloc(response_data_char_len + 1, GFP_KERNEL);
 		if (response_data->report_data.text == NULL) {
 			pr_err("kmalloc failed");
 			return -ENOMEM;
+		}
+		if (timestamp_len > 0) {
+			strncat(response_data->report_data.text, timestamp, timestamp_len);
+			kfree(timestamp);
 		}
 		for (i = 0; i < response_array_index; i++) {
 			strncat(response_data->report_data.text, response_arrays[i], strlen(response_arrays[i]));
@@ -166,10 +174,10 @@ static int analyze_save_check_normal(struct list_head *collect_data_list, analyz
 	return ret;
 }
 
-int analyze_save_check(struct list_head *collect_data_list, analyze_status_t *analyze_status_data, response_data_t *response_data)
+int analyze_save_check(struct list_head *collect_data_list, analyze_status_t *analyze_status_data, response_data_t *response_data, unsigned int event_type)
 {
 	if (analyze_status_data->sc_data.init_tag == 1) {
-		return analyze_save_check_normal(collect_data_list, analyze_status_data, response_data);
+		return analyze_save_check_normal(collect_data_list, analyze_status_data, response_data, event_type);
 	} else {
 		return analyze_save_check_init(collect_data_list, analyze_status_data, response_data);
 	}
