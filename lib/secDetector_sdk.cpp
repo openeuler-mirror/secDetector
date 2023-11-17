@@ -18,6 +18,7 @@
 #include <iostream>
 #include "../observer_agent/grpc_comm/grpc_api.h"
 
+#define ALLTOPIC 0x008FFFFF
 using namespace std;
 static string server_address("unix:///var/run/secDetector.sock");
 static PubSubClient g_client(grpc::CreateChannel(server_address, grpc::InsecureChannelCredentials()));
@@ -31,7 +32,13 @@ extern "C" {
 
 void *secSub(const int topic)
 {
+	if (!(topic & ALLTOPIC))
+		return NULL;
+
 	unique_ptr<ClientReader<Message>> reader = g_client.Subscribe(topic);
+
+	if (!reader)
+		return NULL;
 	void * ret_reader = static_cast<void *>(reader.get());
 
 	g_reader_map.insert(Readmap::value_type(ret_reader, move(reader)));
@@ -40,6 +47,12 @@ void *secSub(const int topic)
 
 void secUnsub(const int topic, void *reader)
 {
+        if (!(topic & ALLTOPIC))
+                return;
+
+	if (!reader)
+                return;
+
 	g_client.Publish(topic, "end");
 	g_client.UnSubscribe(topic);
 	
@@ -52,6 +65,9 @@ void secUnsub(const int topic, void *reader)
 void secReadFrom(void *reader, char *data, int data_len)
 {
 	string msg("");
+
+        if (!reader || !data || data_len <= 1)
+                return;
 
 	Readmap::iterator iter = g_reader_map.find(reader);
         if (iter != g_reader_map.end()) {

@@ -11,6 +11,8 @@
 #define S_IFREG 0100000
 #define S_ISREG(m) (((m) & S_IFMT) == S_IFREG)
 
+#define O_CREAT 100
+
 char LICENSE[] SEC("license") = "Dual BSD/GPL";
 
 struct
@@ -94,8 +96,7 @@ int BPF_PROG(do_filp_open_exit, int dfd, struct filename *pathname, const struct
 {
 	struct ebpf_event *e = NULL;
 
-	///O_CREAT build error
-	if (op && !(op->open_flag & OP_CREATE))
+	if (op && !(op->open_flag & O_CREAT))
 		return 0;
 	if (!S_ISREG(ret_file->f_inode->i_mode))
 		return 0;
