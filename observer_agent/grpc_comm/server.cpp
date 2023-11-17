@@ -27,6 +27,8 @@ using grpc::ServerBuilder;
 using grpc::ServerContext;
 using grpc::ServerWriter;
 
+#define MAX_CONNECTION 5
+
 class PubSubServiceImpl final : public SubManager::Service
 {
   public:
@@ -36,6 +38,16 @@ class PubSubServiceImpl final : public SubManager::Service
         int cli_topic = request->topic();
         std::string cli_name = request->sub_name();
         Message msg;
+
+        if (connection_num >= MAX_CONNECTION) {
+            msg.set_text("over max connection number!");
+            if (!writer->Write(msg))
+            {
+                std::cerr << "Failed to write the initial message" << std::endl;
+                return grpc::Status(grpc::StatusCode::INTERNAL, "Failed to write the message");
+            }
+            return grpc::Status(grpc::StatusCode::INTERNAL, "over max connection number, Failed to Subscribe the topic");
+        }
 
         for (auto iter = suber_topic_[cli_name].begin(); iter != suber_topic_[cli_name].end(); iter++)
         {
@@ -55,6 +67,7 @@ class PubSubServiceImpl final : public SubManager::Service
 
         suber_topic_[cli_name].push_back(cli_topic);
         suber_writer_[cli_name].push_back(writer);
+        connection_num++;
 
         sub_mutex.unlock();
 
@@ -109,6 +122,12 @@ class PubSubServiceImpl final : public SubManager::Service
         int i = 0;
         int unsub_flag = 0;
 
+        if (connection_num <= 0) {
+            response->set_text("connection_num <= 0, don't UnSubscribe!");
+            
+            return grpc::Status(grpc::StatusCode::INTERNAL, "connection_num <= 0, Failed to UnSubscribe topic!");
+        }
+
         std::lock_guard<std::mutex> lock(sub_mutex);
 
         for (auto topic_item : suber_topic_[cli_name])
@@ -117,6 +136,7 @@ class PubSubServiceImpl final : public SubManager::Service
             {
                 suber_topic_[cli_name].erase(suber_topic_[cli_name].begin() + i);
                 suber_writer_[cli_name].erase(suber_writer_[cli_name].begin() + i);
+                connection_num--;
                 unsub_flag = 1;
                 break;
             }
@@ -136,6 +156,7 @@ class PubSubServiceImpl final : public SubManager::Service
     std::unordered_map<std::string, std::vector<int>> suber_topic_;
     std::unordered_map<std::string, std::vector<ServerWriter<Message> *>> suber_writer_;
     std::mutex sub_mutex;
+    int connection_num = 0;
 };
 
 std::unique_ptr<Server> server;
