@@ -52,27 +52,51 @@ static std::string extract_common_info(struct ebpf_event *e)
     return ss.str();
 }
 
+static std::string extract_common_process_info(struct ebpf_event *e)
+{
+    std::ostringstream ss;
+    char umask_str[32] = { 0 };
+
+    snprintf(umask_str, sizeof(umask_str), "%#04o", e->process_info.umask);
+    ss << " umask:" << umask_str << " tracer_pid:" <<  e->process_info.tracer_pid;
+
+    /* read all namespace */
+    ss << " cgroup_ns:" << e->process_info.cgroup_ns;
+    ss << " ipc_ns:" << e->process_info.ipc_ns;
+    ss << " mnt_ns:" << e->process_info.mnt_ns;
+    ss << " user_ns:" << e->process_info.user_ns;
+    ss << " uts_ns:" << e->process_info.uts_ns;
+    ss << " time_ns:" << e->process_info.time_ns;
+
+    return ss.str();
+}
+
+
 static std::string convert_set_process_attr(struct ebpf_event *e)
 {
     std::ostringstream ss;
-    ss << extract_common_info(e) << " new_uid:" << e->process_info.new_uid << " new_gid:" << e->process_info.new_gid;
+    ss << extract_common_info(e) <<  extract_common_process_info(e) <<
+           " new_uid:" << e->process_info.new_uid << " new_gid:" << e->process_info.new_gid;
     return ss.str();
 }
 
 static std::string convert_creat_process(struct ebpf_event *e)
 {
-    std::string text = extract_common_info(e);
-    if (e->process_info.have_bprm)
-    {
-        text = text + " bprm_file:" + e->process_info.bprm_file;
-    }
+    std::ostringstream ss;
 
-    return text;
+    ss << extract_common_info(e) << extract_common_process_info(e);
+    if (e->process_info.have_bprm)
+        ss << " bprm_file:" << e->process_info.bprm_file;
+
+    return ss.str();
 }
 
 static std::string convert_destroy_process(struct ebpf_event *e)
 {
-    return extract_common_info(e);
+    std::ostringstream ss;
+
+    ss << extract_common_info(e) << extract_common_process_info(e) << " exit_code:" << e->process_info.exit_code;
+    return ss.str();
 }
 
 static std::string convert_common_file(struct ebpf_event *e)

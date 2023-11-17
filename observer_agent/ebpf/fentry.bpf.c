@@ -81,6 +81,18 @@ static struct pid_namespace *pid_ns(struct task_struct *task)
     return BPF_CORE_READ(pid, numbers[0].ns);
 }
 
+static void get_namespace(struct ebpf_event *e)
+{
+    struct task_struct *task = (struct task_struct *)bpf_get_current_task();
+
+    e->process_info.cgroup_ns = BPF_CORE_READ(task, nsproxy, cgroup_ns, ns.inum);
+    e->process_info.ipc_ns = BPF_CORE_READ(task, nsproxy, ipc_ns, ns.inum);
+    e->process_info.mnt_ns = BPF_CORE_READ(task, nsproxy, mnt_ns, ns.inum);
+    e->process_info.user_ns = BPF_CORE_READ(task, cred, user_ns, ns.inum);
+    e->process_info.uts_ns = BPF_CORE_READ(task, nsproxy, uts_ns, ns.inum);
+    e->process_info.time_ns = BPF_CORE_READ(task, nsproxy, time_ns, ns.inum);
+}
+
 static void get_common_info(struct ebpf_event *e)
 {
     struct task_struct *parent = NULL;
@@ -106,6 +118,14 @@ static void get_common_info(struct ebpf_event *e)
     e->root_pns = BPF_CORE_READ(pid_ns(find_init_task()), ns.inum);
     BPF_CORE_READ_INTO(&e->pcomm, parent, real_parent, comm);
     BPF_CORE_READ_INTO(&e->nodename, task, nsproxy, uts_ns, name.nodename);
+
+    e->process_info.umask = BPF_CORE_READ(task, fs, umask);
+    if (BPF_CORE_READ(task, ptrace))
+        e->process_info.tracer_pid = BPF_CORE_READ(task, parent, pid);
+    else
+        e->process_info.tracer_pid = 0;
+
+    get_namespace(e);
 }
 
 SEC("tp/sched/sched_process_exec")
@@ -126,11 +146,10 @@ int handle_exec(struct trace_event_raw_sched_process_exec *ctx)
     return 0;
 }
 
-SEC("tp/sched/sched_process_exit")
-int handle_exit(void)
+SEC("fentry/do_exit")
+int BPF_PROG(handle_exit, long exit_code)
 {
     struct ebpf_event *e = NULL;
-    u32 exit_code = 0;
 	RETURN_ZERO_IF_OURSELF();
 
     e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
@@ -140,7 +159,6 @@ int handle_exit(void)
     get_common_info(e);
     e->type = DESTROYPROCESS;
     __builtin_memcpy(e->event_name, "sched_process_exit", sizeof("sched_process_exit"));
-    exit_code = BPF_CORE_READ((struct task_struct *)bpf_get_current_task(), exit_code);
     e->process_info.exit_code = (exit_code >> 8) & 0xff;
     bpf_ringbuf_submit(e, 0);
     return 0;
