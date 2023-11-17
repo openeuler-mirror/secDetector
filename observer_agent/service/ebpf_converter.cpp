@@ -92,7 +92,7 @@ static std::map<int, convert_func_t> convert_funcs = {
     {CREATFILE, convert_common_file},
     {DELFILE, convert_common_file},
     {SETFILEATTR, convert_set_file_attr},
-    {WRITEDFILE, convert_common_file},
+    {WRITEFILE, convert_common_file},
     {READFILE, convert_common_file},
 };
 
