@@ -32,6 +32,14 @@ struct process_info
     {
         unsigned new_uid;
         unsigned new_gid;
+        unsigned umask;
+        unsigned tracer_pid;
+        unsigned long cgroup_ns;
+        unsigned long ipc_ns;
+        unsigned long mnt_ns;
+        unsigned long user_ns;
+        unsigned long uts_ns;
+        unsigned long time_ns;
     };
     struct
     {
