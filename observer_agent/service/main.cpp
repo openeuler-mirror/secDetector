@@ -125,7 +125,8 @@ int main(int argc, char *argv[])
     }
 
     std::thread thread_grpc = std::thread(RunServer);
-    std::thread thread_ebpf = std::thread(StartProcesseBPFProg, ebpf_cb);
+    std::thread thread_ebpf_process = std::thread(StartProcesseBPFProg, ebpf_cb);
+    std::thread thread_ebpf_file = std::thread(StartFileBPFProg, ebpf_cb);
 
     while (exiting == 0)
     {
@@ -142,8 +143,12 @@ int main(int argc, char *argv[])
     StopServer();
     thread_grpc.join();
 
-    std::cout << "Wait ebpf program detached" << std::endl;
+    std::cout << "Wait ebpf process program detached" << std::endl;
     StopProcesseBPFProg();
-    thread_ebpf.join();
+    thread_ebpf_process.join();
+
+    std::cout << "Wait ebpf file program detached" << std::endl;
+    StopFileBPFProg();
+    thread_ebpf_file.join();
     return 0;
 }

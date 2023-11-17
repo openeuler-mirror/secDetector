@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 project(ebpf)
+add_subdirectory(file_ebpf)
 add_custom_target(ebpf
 	COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/.output
 	COMMAND bpftool btf dump file /sys/kernel/btf/vmlinux format c > ${CMAKE_CURRENT_BINARY_DIR}/.output/vmlinux.h
