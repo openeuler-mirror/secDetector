@@ -1,9 +1,20 @@
-// SPDX-License-Identifier: (LGPL-2.1 OR BSD-2-Clause)
-/* Copyright (c) 2021 Sartura
- * Based on minimal.c by Facebook */
-
-#include "ebpf_types.h"
+/*
+ * Copyright (c) 2023 Huawei Technologies Co., Ltd. All rights reserved.
+ * secDetector is licensed under Mulan PSL v2.
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
+ * You may obtain a copy of Mulan PSL v2 at:
+ *          http://license.coscl.org.cn/MulanPSL2
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+ * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+ * See the Mulan PSL v2 for more details.
+ *
+ * Author: chenjingwen
+ * Create: 2023-11-15
+ * Description: secDetector process hook
+ */
 #include "fentry.h"
+#include "ebpf_types.h"
 #include "fentry.skel.h"
 #include <bpf/libbpf.h>
 #include <errno.h>

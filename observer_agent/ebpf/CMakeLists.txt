@@ -1,5 +1,3 @@
-# SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause
-
 cmake_minimum_required(VERSION 3.16)
 project(ebpf)
 add_custom_target(ebpf

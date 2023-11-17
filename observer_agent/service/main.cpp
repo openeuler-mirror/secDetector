@@ -16,16 +16,16 @@
 #include "../grpc_comm/grpc_api.h"
 #include "ebpf/ebpf_types.h"
 #include "ebpf/fentry.h"
+#include "ebpf_converter.h"
 #include "ringbuffer.h"
 #include <errno.h>
 #include <iostream>
-#include <sstream>
+#include <limits>
 #include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <sys/types.h>
 #include <thread>
-#include <limits>
 
 using data_comm::Message;
 using data_comm::PublishRequest;
@@ -79,32 +79,11 @@ static int ringbuf_cb(struct response_rb_entry *entry, size_t entry_size)
     return 0;
 }
 
-static std::string FindProcessPathFromPid(int pid)
-{
-	char *path = NULL;
-	std::string link = "/proc/" + std::to_string(pid) + "/exe";
-	std::string exe = "null";
-
-	path = new char[PATH_MAX];
-	memset(path, 0, PATH_MAX);
-	ssize_t len = readlink(link.c_str(), path, PATH_MAX);
-	if (len != -1)
-		exe = std::string(path);
-	delete path;
-	return exe;
-}
-
 static int ebpf_cb(void *ctx, void *data, size_t data_sz)
 {
-    std::ostringstream ss;
     struct ebpf_event *e = (ebpf_event *)data;
 
-    ss << "timestamp:" << e->timestamp << " event_name:" << e->event_name <<
-	    " exe:" << FindProcessPathFromPid(e->pid) << " pid:" << e->pid << " tgid:" << e->tgid <<
-	    " uid:" << e->uid << " gid:" << e->gid << " comm:" << e->comm <<
-	    " sid:" << e->sid << " ppid:" << e->ppid << " pcomm:" << e->pcomm <<
-	    " nodename:" << e->nodename << " pns:" << e->pns << " root_pns:" << e->pns;
-    push_log(e->type, ss.str());
+    push_log(e->type, ebpf_event_to_text(e));
     return 0;
 }
 

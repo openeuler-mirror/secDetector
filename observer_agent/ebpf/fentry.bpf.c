@@ -1,8 +1,21 @@
-// SPDX-License-Identifier: GPL-2.0 OR BSD-3-Clause
-/* Copyright (c) 2021 Sartura */
+/*
+ * Copyright (c) 2023 Huawei Technologies Co., Ltd. All rights reserved.
+ * secDetector is licensed under Mulan PSL v2.
+ * You can use this software according to the terms and conditions of the Mulan PSL v2.
+ * You may obtain a copy of Mulan PSL v2 at:
+ *          http://license.coscl.org.cn/MulanPSL2
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+ * EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+ * See the Mulan PSL v2 for more details.
+ *
+ * Author: chenjingwen
+ * Create: 2023-11-14
+ * Description: secDetector process hook
+ */
 #include "ebpf_types.h"
-#include "vmlinux.h"
 #include "secDetector_topic.h"
+#include "vmlinux.h"
 #include <bpf/bpf_core_read.h>
 #include <bpf/bpf_helpers.h>
 #include <bpf/bpf_tracing.h>
@@ -133,6 +146,50 @@ int handle_fork(struct trace_event_raw_sched_process_fork *ctx)
     get_common_info(e);
     e->type = CREATPROCESS;
     __builtin_memcpy(e->event_name, "sched_process_fork", sizeof("sched_process_fork"));
+    bpf_ringbuf_submit(e, 0);
+    return 0;
+}
+
+SEC("fentry/commit_creds")
+int BPF_PROG(handle_commit_creds, const struct cred *new)
+{
+    struct task_struct *task = (struct task_struct *)bpf_get_current_task();
+    int old_uid = BPF_CORE_READ(task, cred, uid.val);
+    int old_gid = BPF_CORE_READ(task, cred, gid.val);
+    int new_uid = new->uid.val;
+    int new_gid = new->gid.val;
+    struct ebpf_event *e = NULL;
+
+    if (old_uid == new_uid && old_gid == new_gid)
+        return 0;
+
+    e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
+    if (!e)
+        return 0;
+
+    e->type = SETPROCESSATTR;
+    e->process_info.new_uid = new_uid;
+    e->process_info.new_gid = new_gid;
+    get_common_info(e);
+    __builtin_memcpy(e->event_name, "commit_creds", sizeof("commit_creds"));
+    bpf_ringbuf_submit(e, 0);
+    return 0;
+}
+
+SEC("fentry/security_bprm_check")
+int BPF_PROG(handle_bprm_check, struct linux_binprm *bprm)
+{
+    struct ebpf_event *e = NULL;
+
+    e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
+    if (!e)
+        return 0;
+
+    e->type = CREATPROCESS;
+    bpf_core_read_str(e->process_info.bprm_file, MAX_FILENAME_SIZE, bprm->file->f_path.dentry->d_name.name);
+    e->process_info.have_bprm = 1;
+    get_common_info(e);
+    __builtin_memcpy(e->event_name, "security_bprm_check", sizeof("security_bprm_check"));
     bpf_ringbuf_submit(e, 0);
     return 0;
 }
