@@ -40,6 +40,37 @@ using grpc::ServerBuilder;
 using grpc::ServerContext;
 using grpc::ServerWriter;
 
+#define MIN_RINGBUF_SIZE 4
+#define MAX_RINGBUF_SIZE 1024
+static unsigned int ringbuf_size_bytes;
+static unsigned int ringbuf_size = MIN_RINGBUF_SIZE;
+
+static bool power_of_2(unsigned int num)
+{
+    if (num == 0)
+        return false;
+    if (num & (num - 1) != 0)
+        return false;
+    return true;
+}
+
+static bool ringbuf_size_check(void)
+{
+	if (ringbuf_size < MIN_RINGBUF_SIZE || ringbuf_size > MAX_RINGBUF_SIZE) {
+		std::cerr << "[secDetector] ringbuf_size should be 4 and 1024 (Mb)" << std::endl;
+		return false;
+	}
+
+	if (!power_of_2(ringbuf_size)) {
+		std::cerr << "[secDetector] ringbuf_size should be power of 2" << std::endl;
+		return false;
+	}
+    
+    std::cout << "ringbuf size is set to " << ringbuf_size << "Mb" << std::endl;
+	ringbuf_size_bytes = ringbuf_size * 1024 * 1024;
+	return true;
+}
+
 static volatile sig_atomic_t exiting = 0;
 static void sig_handler(int sig)
 {
@@ -91,16 +122,25 @@ int main(int argc, char *argv[])
 {
     int r;
     int opt;
+    unsigned int rb_sz;
 
     set_signal_handler();
-    while ((opt = getopt(argc, argv, "d")) != -1)
+    while ((opt = getopt(argc, argv, "ds:")) != -1)
     {
         switch (opt)
         {
         case 'd':
             debug = true;
             break;
+        case 's':
+            ringbuf_size = strtoul(optarg, NULL, 0);
+            break;
         }
+    }
+    
+    if (!ringbuf_size_check()) {
+        std::cerr << "Not a valid ring buffer size" << std::endl;
+        return -1;
     }
 
     if (debug)
@@ -125,8 +165,8 @@ int main(int argc, char *argv[])
     }
 
     std::thread thread_grpc = std::thread(RunServer);
-    std::thread thread_ebpf_process = std::thread(StartProcesseBPFProg, ebpf_cb);
-    std::thread thread_ebpf_file = std::thread(StartFileBPFProg, ebpf_cb);
+    std::thread thread_ebpf_process = std::thread(StartProcesseBPFProg, ebpf_cb, ringbuf_size_bytes);
+    std::thread thread_ebpf_file = std::thread(StartFileBPFProg, ebpf_cb, ringbuf_size_bytes);
 
     while (exiting == 0)
     {

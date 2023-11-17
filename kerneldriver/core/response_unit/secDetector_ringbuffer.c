@@ -18,8 +18,9 @@
 #include <linux/kmemleak.h>
 #include <linux/fs.h>
 
-#define rb_datasz (PAGE_SIZE << 10) /* 4Mb */
-#define rb_mask (rb_datasz - 1)
+static unsigned long rb_datasz;
+static unsigned long rb_mask;
+
 
 #define MODULE_DEVICE "secDetector"
 
@@ -347,10 +348,13 @@ int secDetector_ringbuf_output(const void *data, u64 size, u64 flags)
 	return ringbuf_output(g_rb, data, size, flags);
 }
 
-int __init secDetector_ringbuf_dev_init(void)
+int __init secDetector_ringbuf_dev_init(unsigned int rb_sz)
 {
 	struct device *class_dev = NULL;
 	int ret = 0;
+
+	rb_datasz = rb_sz;
+	rb_mask = rb_datasz - 1;
 
 	g_rb = ringbuf_alloc(rb_datasz, 0);
 	if (!g_rb)

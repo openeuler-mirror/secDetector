@@ -114,12 +114,12 @@ void free_response_data(uint32_t repsonse_id, response_data_t *rd)
 	}
 }
 
-int __init secDetector_response_init(void)
+int __init secDetector_response_init(unsigned int rb_sz)
 {
-	return secDetector_ringbuf_dev_init();
+	return secDetector_ringbuf_dev_init(rb_sz);
 }
 
-void __exit secDetector_response_exit(void)
+void secDetector_response_exit(void)
 {
 	secDetector_ringbuf_dev_exit();
 }

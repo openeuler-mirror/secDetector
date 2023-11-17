@@ -22,10 +22,10 @@ extern "C"
 #include <bpf/libbpf.h>
 
 void StopProcesseBPFProg();
-int StartProcesseBPFProg(ring_buffer_sample_fn cb);
+int StartProcesseBPFProg(ring_buffer_sample_fn cb, unsigned int rb_sz);
 
 void StopFileBPFProg();
-int StartFileBPFProg(ring_buffer_sample_fn cb);
+int StartFileBPFProg(ring_buffer_sample_fn cb, unsigned int rb_sz);
 #ifdef __cplusplus
 }
 #endif
