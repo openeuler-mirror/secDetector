@@ -29,6 +29,7 @@ struct secDetector_module {
 	unsigned int id;
 	char *name;
 	struct module *kmodule;
+	unsigned int event_type;
 	atomic_t enabled;
 
 	secDetector_workflow_t *workflow_array;

@@ -15,7 +15,7 @@
 
 #define TIME_INTERVAL 10
 DEFINE_MUTEX(case_mc_mutex);
-
+#define KERNELKEYDATATAMPER 0x00008000
 
 static void check_all_watching_memory(void)
 {
@@ -50,10 +50,11 @@ static struct secDetector_workflow workflow_array[] = {
 };
 
 static struct secDetector_module mc_module = {
-	.name = "secDetector memory corruption module",
+	.name = "memory_corruption",
 	.enabled = ATOMIC_INIT(true),
 	.workflow_array = workflow_array,
 	.workflow_array_len = ARRAY_SIZE(workflow_array),
+	.event_type = KERNELKEYDATATAMPER,
 };
 
 static int __init register_secDetector_mc(void)

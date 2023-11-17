@@ -31,7 +31,7 @@ void preset_workflow(secDetector_workflow_t *wf)
 		sc->collect_func(NULL, &collect_data_list);
 	}
 
-	repsonse_id = wf->analyze_func(&collect_data_list, &(wf->analyze_status), &rd);
+	repsonse_id = wf->analyze_func(&collect_data_list, &(wf->analyze_status), &rd, wf->module->event_type);
 
 	if (repsonse_id >= 0)
 		wf->response_array[repsonse_id].response_func(&rd);

@@ -7,11 +7,12 @@
  */
 #include "secDetector_collect.h"
 #include "secDetector_function_switch.h"
+#include "secDetector_time.h"
 #include <linux/slab.h>
-#include <linux/string.h>
 
 collect_func_t collect_units[NR_COLLECT] = {
 	[COLLECT_GLOBAL_FUNCTION_SWITCH] = collect_function_switch,
+	[COLLECT_TIME] = collect_time,
 };
 
 
