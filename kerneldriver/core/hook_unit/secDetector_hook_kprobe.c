@@ -17,22 +17,30 @@ static int vfs_unlink_handler(struct kprobe *p, struct pt_regs *regs)
 	return 0;
 }
 
-static int sys_memfd_create_handler(struct kprobe *p, struct pt_regs *regs)
+static int ptrace_attach_handler(struct kprobe *p, struct pt_regs *regs)
 {
 	int ret;
-	do_secDetector_hook_callback_valid_ret(kprobe_func, KPROBE_MEMFD_CREATE, &ret,
+	do_secDetector_hook_callback_valid_ret(kprobe_func, KPROBE_PTRACE_ATTACH, &ret,
+				     PARAMS(p, regs));
+	return 0;
+}
+
+static int do_pipe2_handler(struct kprobe *p, struct pt_regs *regs)
+{
+	int ret;
+	do_secDetector_hook_callback_valid_ret(kprobe_func, KPROBE_DO_PIPE2, &ret,
 				     PARAMS(p, regs));
 	return 0;
 }
 
 static struct kprobe secDetector_kprobe_hook_functions[] = {
-	[KPROBE_VFS_UNLINK] = {
-		.symbol_name = "vfs_unlink",
-		.pre_handler = vfs_unlink_handler,
+	[KPROBE_PTRACE_ATTACH] = {
+		.symbol_name = "ptrace_attach",
+		.pre_handler = ptrace_attach_handler,
 	},
-	[KPROBE_MEMFD_CREATE] = {
-		.symbol_name = "sys_memfd_create",
-		.pre_handler = sys_memfd_create_handler,
+	[KPROBE_DO_PIPE2] = {
+		.symbol_name = "do_pipe2",
+		.pre_handler = do_pipe2_handler,
 	},
 };
 
