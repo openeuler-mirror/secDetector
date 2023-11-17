@@ -28,6 +28,16 @@ struct
     __uint(max_entries, 1024 * 1024);
 } rb SEC(".maps");
 
+const volatile int secdetector_pid = -1;
+
+#define RETURN_IF_OURSELF(retval) \
+do {   \
+	if (secdetector_pid == bpf_get_current_pid_tgid() >> 32) \
+		return retval;  \
+} while(0)
+
+#define RETURN_ZERO_IF_OURSELF() RETURN_IF_OURSELF(0)
+
 static inline u32 get_task_sid(struct task_struct *task)
 {
     struct pid *pid;
@@ -77,7 +87,7 @@ static void get_common_info(struct ebpf_event *e)
     struct task_struct *task = NULL;
 
     e->timestamp = bpf_ktime_get_ns();
-    e->pid = bpf_get_current_pid_tgid();
+    e->pid = bpf_get_current_pid_tgid() >> 32;
     e->pgid = e->tgid = bpf_get_current_pid_tgid() >> 32;
     e->uid = bpf_get_current_uid_gid();
     e->gid = bpf_get_current_uid_gid() >> 32;
@@ -102,6 +112,7 @@ SEC("tp/sched/sched_process_exec")
 int handle_exec(struct trace_event_raw_sched_process_exec *ctx)
 {
     struct ebpf_event *e = NULL;
+	RETURN_ZERO_IF_OURSELF();
 
     e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
     if (!e)
@@ -120,6 +131,7 @@ int handle_exit(void)
 {
     struct ebpf_event *e = NULL;
     u32 exit_code = 0;
+	RETURN_ZERO_IF_OURSELF();
 
     e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
     if (!e)
@@ -138,6 +150,7 @@ SEC("tp/sched/sched_process_fork")
 int handle_fork(struct trace_event_raw_sched_process_fork *ctx)
 {
     struct ebpf_event *e = NULL;
+	RETURN_ZERO_IF_OURSELF();
 
     e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
     if (!e)
@@ -153,6 +166,8 @@ int handle_fork(struct trace_event_raw_sched_process_fork *ctx)
 SEC("fentry/commit_creds")
 int BPF_PROG(handle_commit_creds, const struct cred *new)
 {
+	RETURN_ZERO_IF_OURSELF();
+
     struct task_struct *task = (struct task_struct *)bpf_get_current_task();
     int old_uid = BPF_CORE_READ(task, cred, uid.val);
     int old_gid = BPF_CORE_READ(task, cred, gid.val);
@@ -180,6 +195,7 @@ SEC("fentry/security_bprm_check")
 int BPF_PROG(handle_bprm_check, struct linux_binprm *bprm)
 {
     struct ebpf_event *e = NULL;
+	RETURN_ZERO_IF_OURSELF();
 
     e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
     if (!e)

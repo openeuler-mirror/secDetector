@@ -21,6 +21,16 @@ struct
 	__uint(max_entries, 1024 * 1024);
 } rb SEC(".maps");
 
+const volatile int secdetector_pid = -1;
+
+#define RETURN_IF_OURSELF(retval) \
+do {   \
+	if (secdetector_pid == bpf_get_current_pid_tgid() >> 32) \
+		return retval;  \
+} while(0)
+
+#define RETURN_ZERO_IF_OURSELF() RETURN_IF_OURSELF(0)
+
 static inline u32 get_task_sid(struct task_struct *task)
 {
 	struct pid *pid;
@@ -70,7 +80,7 @@ static void get_common_info(struct ebpf_event *e)
 	struct task_struct *task = NULL;
 
 	e->timestamp = bpf_ktime_get_ns();
-	e->pid = bpf_get_current_pid_tgid();
+	e->pid = bpf_get_current_pid_tgid() >> 32;
 	e->pgid = e->tgid = bpf_get_current_pid_tgid() >> 32;
 	e->uid = bpf_get_current_uid_gid();
 	e->gid = bpf_get_current_uid_gid() >> 32;
@@ -95,6 +105,7 @@ SEC("fexit/do_filp_open")
 int BPF_PROG(do_filp_open_exit, int dfd, struct filename *pathname, const struct open_flags *op, struct file *ret_file)
 {
 	struct ebpf_event *e = NULL;
+	RETURN_ZERO_IF_OURSELF();
 
 	if (op && !(op->open_flag & O_CREAT))
 		return 0;
@@ -105,7 +116,7 @@ int BPF_PROG(do_filp_open_exit, int dfd, struct filename *pathname, const struct
 	if (!e)
 		return 0;
 
-	e->type = 4;
+	e->type = CREATFILE;
 	get_common_info(e);
 	__builtin_memcpy(e->event_name, "do_filp_open", sizeof("do_filp_open"));
 	bpf_probe_read(e->file_info.filename, MAX_TEXT_SIZE, pathname->name);
@@ -119,6 +130,9 @@ int BPF_PROG(fexit_vfs_write, struct file *file, const char *buf, size_t count, 
 	struct ebpf_event *e = NULL;
 	if (ret <= 0)
 		return 0;
+
+	RETURN_ZERO_IF_OURSELF();
+
 	if (!S_ISREG(file->f_inode->i_mode))
 		return 0;
 
@@ -126,7 +140,7 @@ int BPF_PROG(fexit_vfs_write, struct file *file, const char *buf, size_t count, 
 	if (!e)
 		return 0;
 
-	e->type = 1;
+	e->type = WRITEFILE;
 	get_common_info(e);
 	__builtin_memcpy(e->event_name, "vfs_write", sizeof("vfs_write"));
 	bpf_probe_read(e->file_info.filename, MAX_TEXT_SIZE, file->f_path.dentry->d_name.name);
@@ -142,6 +156,8 @@ int BPF_PROG(fexit_vfs_unlink, struct inode *dir, struct dentry *dentry, struct 
 
 	if (ret != 0)
 		return 0;
+
+	RETURN_ZERO_IF_OURSELF();
 
 	e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
 	if (!e)
@@ -162,12 +178,15 @@ int BPF_PROG(fexit_vfs_read, struct file *file, char *buf, size_t count, long lo
 
 	if (ret != 0)
 		return 0;
+
+	RETURN_ZERO_IF_OURSELF();
+
 	if (!S_ISREG(file->f_inode->i_mode))
 		return 0;
 	e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
 	if (!e)
 		return 0;
-	e->type = 9;
+	e->type = READFILE;
 	get_common_info(e);
 	__builtin_memcpy(e->event_name, "vfs_read", sizeof("vfs_read"));
 	bpf_probe_read(e->file_info.filename, MAX_TEXT_SIZE, file->f_path.dentry->d_name.name);
@@ -180,6 +199,8 @@ SEC("fentry/vfs_utimes")
 int BPF_PROG(fexit_vfs_utimes, const struct path *path, struct timespec64 *times)
 {
 	struct ebpf_event *e = NULL;
+
+	RETURN_ZERO_IF_OURSELF();
 
 	e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
 	if (!e)
@@ -198,6 +219,8 @@ int BPF_PROG(fexit_chmod_common, const struct path *path, umode_t mode, int ret)
 {
 	struct ebpf_event *e = NULL;
 
+	RETURN_ZERO_IF_OURSELF();
+
 	e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
 	if (!e)
 		return 0;
@@ -214,6 +237,8 @@ SEC("fexit/chown_common")
 int BPF_PROG(fexit_chown_common, const struct path *path, uid_t user, gid_t group, int ret)
 {
 	struct ebpf_event *e = NULL;
+
+	RETURN_ZERO_IF_OURSELF();
 
 	e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
 	if (!e)
@@ -232,6 +257,8 @@ int BPF_PROG(fentry__vfs_setxattr_noperm, struct dentry *dentry, const char *nam
 {
 	struct ebpf_event *e = NULL;
 
+	RETURN_ZERO_IF_OURSELF();
+
 	e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
 	if (!e)
 		return 0;
@@ -249,6 +276,7 @@ SEC("fentry/__vfs_removexattr_locked")
 int BPF_PROG(fentry__vfs_removexattr_locked, struct dentry *dentry, const char *name, struct inode **delegated_inode)
 {
 	struct ebpf_event *e = NULL;
+	RETURN_ZERO_IF_OURSELF();
 
 	e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
 	if (!e)

@@ -21,18 +21,26 @@ void StopFileBPFProg()
     exiting = 1;
 }
 
-int StartFileBPFProg(ring_buffer_sample_fn cb)
+int StartFileBPFProg(ring_buffer_sample_fn cb, unsigned int rb_sz)
 {
     struct file_fentry_bpf *skel;
     struct ring_buffer *rb = NULL;
     int err;
 
     /* Open load and verify BPF application */
-    skel = file_fentry_bpf__open_and_load();
+    skel = file_fentry_bpf__open();
     if (!skel)
     {
         fprintf(stderr, "Failed to open BPF skeleton\n");
         return 1;
+    }
+    bpf_map__set_max_entries(skel->maps.rb, rb_sz);
+    skel->rodata->secdetector_pid = getpid();
+
+	if (file_fentry_bpf__load(skel)) {
+        fprintf(stderr, "Failed to load BPF skeleton\n");
+        err = -1;
+        goto cleanup;
     }
 
     /* Attach tracepoint handler */
