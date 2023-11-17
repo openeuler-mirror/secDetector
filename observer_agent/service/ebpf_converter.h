@@ -13,18 +13,9 @@
  * Create: 2023-11-16
  * Description: ebpf converter
  */
-#ifndef __SECDETECTOR_EBPF_FENTRY_H
-#define __SECDETECTOR_EBPF_FENTRY_H
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-#include <bpf/libbpf.h>
+#ifndef SECDETECTOR_EBPF_CONVERTER_H
+#define SECDETECTOR_EBPF_CONVERTER_H
+#include "ebpf/ebpf_types.h"
 
-void StopProcesseBPFProg();
-int StartProcesseBPFProg(ring_buffer_sample_fn cb);
-
-#ifdef __cplusplus
-}
+std::string ebpf_event_to_text(struct ebpf_event *e);
 #endif
-#endif /* __SECDETECTOR_EBPF_FENTRY_H */
