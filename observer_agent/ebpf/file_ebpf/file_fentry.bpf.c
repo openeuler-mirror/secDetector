@@ -263,3 +263,24 @@ int BPF_PROG(fentry__vfs_removexattr_locked, struct dentry *dentry, const char *
 	return 0;
 }
 
+SEC("fentry/vfs_rename")
+int BPF_PROG(fentry_vfs_rename, struct inode *old_dir, struct dentry *old_dentry,
+	struct inode *new_dir, struct dentry *new_dentry, struct inode **delegated_inode,
+	unsigned int flags)
+{
+	struct ebpf_event *e = NULL;
+
+	e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
+	if (!e)
+		return 0;
+
+	e->type = SETFILEATTR;
+	get_common_info(e);
+	__builtin_memcpy(e->event_name, "vfs_rename", sizeof("vfs_rename"));
+	bpf_probe_read(e->file_info.filename, MAX_TEXT_SIZE, old_dentry->d_name.name);
+	bpf_probe_read(e->file_info.value, MAX_TEXT_SIZE, new_dentry->d_name.name);
+	bpf_probe_read(e->file_info.old_value, MAX_TEXT_SIZE, old_dentry->d_name.name);
+	bpf_ringbuf_submit(e, 0);
+	return 0;
+}
+

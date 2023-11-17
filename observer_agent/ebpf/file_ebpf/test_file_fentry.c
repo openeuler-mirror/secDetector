@@ -12,7 +12,7 @@ static int handle_event(void *ctx, void *data, size_t data_sz)
     	if (e->type & (CREATFILE | DELFILE | SETFILEATTR | WRITEFILE | READFILE))
 		printf(" filename:%s", e->file_info.filename);
 	if (e->type & SETFILEATTR)
-		printf(" name:%s", e->file_info.name);
+		printf(" name:%s value:%s old_value:%s", e->file_info.name, e->file_info.value,e->file_info.old_value);
 	printf(" exit_code: %u\n", e->process_info.exit_code);
 	return 0;
 }
