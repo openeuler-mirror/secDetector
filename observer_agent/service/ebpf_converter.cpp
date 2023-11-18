@@ -148,7 +148,10 @@ static std::string convert_common_file(struct ebpf_event *e)
 
 static std::string convert_set_file_attr(struct ebpf_event *e)
 {
-    return extract_common_info(e) + " filename:" + e->file_info.filename + " name:" + e->file_info.name;
+    std::ostringstream ss;
+    ss << extract_common_info(e) << " filename:" << e->file_info.filename << " name:" << e->file_info.name
+            << " value:" << e->file_info.value << " old_value:" << e->file_info.old_value;
+    return ss.str();
 }
 
 static std::map<int, convert_func_t> convert_funcs = {
