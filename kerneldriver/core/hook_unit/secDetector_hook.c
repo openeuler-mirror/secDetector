@@ -27,8 +27,6 @@ static bool timer_callback_exists(struct secDetector_workflow *workflow);
 static struct hook_list_func hook_list_funcs[] = {
 	{ KPROBE_HOOK_START, KPROBE_HOOK_END, insert_kprobe_hook,
 	  delete_kprobe_hook, kprobe_exists },
-	{ LSM_HOOK_START, LSM_HOOK_END, insert_lsm_hook,
-	  delete_lsm_hook, lsm_exists },
 	{ TRACEPOINT_HOOK_START, TRACEPOINT_HOOK_END, insert_tracepoint_hook,
 	  delete_tracepoint_hook, tracepoint_exists },
 	{ SECDETECTOR_TIMER, SECDETECTOR_TIMER, insert_timer_callback,
@@ -42,12 +40,11 @@ DEFINE_MUTEX(g_hook_list_array_mutex);
 int init_secDetector_hook(void)
 {
 	int i;
-	int ret;
+	int ret = 0;
 	mutex_lock(&g_hook_list_array_mutex);
 	for (i = 0; i < HOOKEND; i++)
 		INIT_LIST_HEAD(&secDetector_hook_array[i]);
 
-	ret = init_lsm_hook();
 	mutex_unlock(&g_hook_list_array_mutex);
 	return ret;
 }
