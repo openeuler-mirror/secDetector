@@ -5,6 +5,7 @@
 #include "../ebpf_types.h"
 #include "../fentry.h"
 #include "file_fentry.skel.h"
+#include "secDetector_topic.h"
 #include <bpf/libbpf.h>
 #include <errno.h>
 #include <linux/types.h>
@@ -21,7 +22,55 @@ void StopFileBPFProg()
     exiting = 1;
 }
 
-int StartFileBPFProg(ring_buffer_sample_fn cb, unsigned int rb_sz)
+static void DisableProg(struct bpf_object_skeleton *s, const char *prog_name)
+{
+    int n = s->prog_cnt;
+
+    for (int i = 0; i < n; i++) {
+        if (strcmp(s->progs[i].name, prog_name) == 0) {
+                fprintf(stderr, "%s is not enabled\n", prog_name);
+                bpf_link__destroy(*s->progs[i].link);
+                s->progs[i].link = NULL;
+
+                /* exchange the last one */
+                s->progs[i].prog = s->progs[n - 1].prog;
+                s->progs[i].link = s->progs[n - 1].link;
+                s->progs[i].name = s->progs[n - 1].name;
+                s->prog_cnt--;
+                break;
+        }
+    }
+}
+
+static void DisableProgBasedOnMask(struct bpf_object_skeleton *skel, int mask)
+{
+    if ((mask & CREATFILE) == 0) {
+        DisableProg(skel, "do_filp_open_exit");
+    }
+
+    if ((mask & DELFILE) == 0) {
+        DisableProg(skel, "fexit_vfs_unlink");
+    }
+
+    if ((mask & WRITEFILE) == 0) {
+        DisableProg(skel, "fexit_vfs_write");
+    }
+
+    if ((mask & READFILE) == 0) {
+        DisableProg(skel, "fexit_vfs_read");
+    }
+
+    if ((mask & SETFILEATTR) == 0) {
+        DisableProg(skel, "fexit_vfs_utimes");
+        DisableProg(skel, "fexit_chown_common");
+        DisableProg(skel, "fexit_chmod_common");
+        DisableProg(skel, "fentry__vfs_setxattr_noperm");
+        DisableProg(skel, "fentry__vfs_removexattr_locked");
+        DisableProg(skel, "fentry_vfs_rename");
+    }
+}
+
+int StartFileBPFProg(ring_buffer_sample_fn cb, unsigned int rb_sz, int mask)
 {
     struct file_fentry_bpf *skel;
     struct ring_buffer *rb = NULL;
@@ -58,6 +107,8 @@ int StartFileBPFProg(ring_buffer_sample_fn cb, unsigned int rb_sz)
         fprintf(stderr, "Failed to create ring buffer\n");
         goto cleanup;
     }
+
+    DisableProgBasedOnMask(skel->skeleton, mask);
 
     while (exiting == 0)
     {

@@ -26,5 +26,5 @@ int main()
 {
 	/* Set up libbpf errors and debug info callback */
 	libbpf_set_print(libbpf_print_fn);
-	StartFileBPFProg(handle_event, 4 * 1024 * 1024);
+	StartFileBPFProg(handle_event, 4 * 1024 * 1024, 0xffffffff);
 }

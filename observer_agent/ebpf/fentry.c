@@ -14,6 +14,7 @@
  * Description: secDetector process hook
  */
 #include "fentry.h"
+#include "secDetector_topic.h"
 #include "ebpf_types.h"
 #include "fentry.skel.h"
 #include <bpf/libbpf.h>
@@ -32,7 +33,49 @@ void StopProcesseBPFProg()
     exiting = 1;
 }
 
-int StartProcesseBPFProg(ring_buffer_sample_fn cb, unsigned int rb_sz)
+static void DisableProg(struct bpf_object_skeleton *s, const char *prog_name)
+{
+    int n = s->prog_cnt;
+
+    for (int i = 0; i < n; i++) {
+        if (strcmp(s->progs[i].name, prog_name) == 0) {
+                fprintf(stderr, "%s is not enabled\n", prog_name);
+                bpf_link__destroy(*s->progs[i].link);
+                s->progs[i].link = NULL;
+
+                /* exchange the last one */
+                s->progs[i].prog = s->progs[n - 1].prog;
+                s->progs[i].link = s->progs[n - 1].link;
+                s->progs[i].name = s->progs[n - 1].name;
+                s->prog_cnt--;
+        }
+    }
+}
+
+
+static void DisableProgBasedOnMask(struct bpf_object_skeleton *skel, int mask)
+{
+    if ((mask & CREATPROCESS) == 0) {
+        DisableProg(skel, "handle_exec");
+        DisableProg(skel, "handle_fork");
+        DisableProg(skel, "handle_bprm_check");
+    }
+
+    if ((mask & DESTROYPROCESS) == 0) {
+        DisableProg(skel, "handle_exit");
+    }
+
+    if ((mask & SETPROCESSATTR) == 0) {
+        DisableProg(skel, "handle_commit_creds");
+    }
+
+    if ((mask & EXECCMD) == 0) {
+        DisableProg(skel, "handle_execve_cmd");
+    }
+}
+
+
+int StartProcesseBPFProg(ring_buffer_sample_fn cb, unsigned int rb_sz, int mask)
 {
     struct fentry_bpf *skel;
     struct ring_buffer *rb = NULL;
@@ -69,6 +112,8 @@ int StartProcesseBPFProg(ring_buffer_sample_fn cb, unsigned int rb_sz)
         fprintf(stderr, "Failed to create ring buffer\n");
         goto cleanup;
     }
+
+    DisableProgBasedOnMask(skel->skeleton, mask);
 
     while (exiting == 0)
     {

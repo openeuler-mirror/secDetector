@@ -7,8 +7,9 @@ set(GRPC_PATH ${CMAKE_CURRENT_SOURCE_DIR}/grpc_comm)
 add_custom_target(grpc_demo ALL
 	COMMAND make -C ${GRPC_PATH})
 
-add_executable(secDetectord grpc_comm/client.cpp grpc_comm/server.cpp service/main.cpp service/ringbuffer.cpp
-	                    service/ebpf_converter.cpp)
+add_executable(secDetectord grpc_comm/client.cpp grpc_comm/server.cpp
+			    	    	service/main.cpp service/ringbuffer.cpp
+							service/ebpf_converter.cpp)
 add_dependencies(secDetectord ebpf file_ebpf)
 target_include_directories(secDetectord PUBLIC service grpc_comm ${CMAKE_SOURCE_DIR}/include .)
 

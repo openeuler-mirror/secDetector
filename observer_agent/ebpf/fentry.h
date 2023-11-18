@@ -19,13 +19,15 @@
 extern "C"
 {
 #endif
+#include "fentry.h"
 #include <bpf/libbpf.h>
+extern struct fentry_bpf *process_bpf_skel;
 
 void StopProcesseBPFProg();
-int StartProcesseBPFProg(ring_buffer_sample_fn cb, unsigned int rb_sz);
+int StartProcesseBPFProg(ring_buffer_sample_fn cb, unsigned int rb_sz, int mask);
 
 void StopFileBPFProg();
-int StartFileBPFProg(ring_buffer_sample_fn cb, unsigned int rb_sz);
+int StartFileBPFProg(ring_buffer_sample_fn cb, unsigned int rb_sz, int mask);
 #ifdef __cplusplus
 }
 #endif
