@@ -50,4 +50,5 @@
 /* memory corruption kmodule list */
 #define KMODULELIST 0x00800000
 
+#define ALL_TOPIC 0xFFFFFFFF
 #endif

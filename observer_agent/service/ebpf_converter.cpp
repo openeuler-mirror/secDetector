@@ -76,7 +76,7 @@ static std::string extract_common_info(struct ebpf_event *e)
 {
     std::ostringstream ss;
     ss << "timestamp:" << get_local_time()  << " event_name:" << e->event_name << " exe:" << FindProcessPathFromPid(e)
-       << " pid:" << e->pid << " tgid:" << e->tgid << " uid:" << e->uid << " gid:" << e->gid << " comm:" << e->comm
+       << " pid:" << e->pid << " tgid:" << e->tgid << " pgid:" << e->pgid << " uid:" << e->uid << " gid:" << e->gid << " comm:" << e->comm
        << " sid:" << e->sid << " ppid:" << e->ppid << " pcomm:" << e->pcomm << " nodename:" << e->nodename
        << " pns:" << e->pns << " root_pns:" << e->pns;
     return ss.str();

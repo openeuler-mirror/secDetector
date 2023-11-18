@@ -163,7 +163,7 @@ int BPF_PROG(fexit_vfs_unlink, struct inode *dir, struct dentry *dentry, struct 
 	if (!e)
 		return 0;
 
-	e->type = 2;
+	e->type = DELFILE;
 	get_common_info(e);
 	__builtin_memcpy(e->event_name, "vfs_unlink", sizeof("vfs_unlink"));
 	bpf_probe_read(e->file_info.filename, MAX_TEXT_SIZE, dentry->d_name.name);

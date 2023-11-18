@@ -7,7 +7,7 @@ add_custom_target(file_ebpf
 	COMMAND bpftool btf dump file /sys/kernel/btf/vmlinux format c > ${CMAKE_CURRENT_BINARY_DIR}/.output/vmlinux.h
 	COMMAND clang -g -O2 -target bpf -D__TARGET_ARCH_x86 -I${CMAKE_SOURCE_DIR}/include -I${CMAKE_CURRENT_BINARY_DIR}/.output -c ${CMAKE_CURRENT_SOURCE_DIR}/file_fentry.bpf.c -o ${CMAKE_CURRENT_BINARY_DIR}/.output/file_fentry.bpf.o
 	COMMAND bpftool gen skeleton ${CMAKE_CURRENT_BINARY_DIR}/.output/file_fentry.bpf.o > ${CMAKE_CURRENT_BINARY_DIR}/.output/file_fentry.skel.h
-	COMMAND cc -g -Wall -fPIC -I${CMAKE_CURRENT_BINARY_DIR}/.output -I${CMAKE_CURRENT_SOURCE_DIR} -c ${CMAKE_CURRENT_SOURCE_DIR}/file_fentry.c -o ${CMAKE_CURRENT_BINARY_DIR}/.output/file_fentry.o
+        COMMAND cc -g -Wall -fPIC -I${CMAKE_SOURCE_DIR}/include -I${CMAKE_CURRENT_BINARY_DIR}/.output -I${CMAKE_CURRENT_SOURCE_DIR} -c ${CMAKE_CURRENT_SOURCE_DIR}/file_fentry.c -o ${CMAKE_CURRENT_BINARY_DIR}/.output/file_fentry.o
 )
 
 add_executable(test_file_fentry ${CMAKE_CURRENT_SOURCE_DIR}/test_file_fentry.c)
