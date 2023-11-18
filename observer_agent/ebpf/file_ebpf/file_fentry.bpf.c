@@ -118,7 +118,7 @@ int BPF_PROG(do_filp_open_exit, int dfd, struct filename *pathname, const struct
 
 	e->type = CREATFILE;
 	get_common_info(e);
-	__builtin_memcpy(e->event_name, "do_filp_open", sizeof("do_filp_open"));
+	__builtin_memcpy(e->event_name, "createfile", sizeof("createfile"));
 	bpf_probe_read(e->file_info.filename, MAX_TEXT_SIZE, pathname->name);
 	bpf_ringbuf_submit(e, 0);
 	return 0;
@@ -142,7 +142,7 @@ int BPF_PROG(fexit_vfs_write, struct file *file, const char *buf, size_t count, 
 
 	e->type = WRITEFILE;
 	get_common_info(e);
-	__builtin_memcpy(e->event_name, "vfs_write", sizeof("vfs_write"));
+	__builtin_memcpy(e->event_name, "writefile", sizeof("writefile"));
 	bpf_probe_read(e->file_info.filename, MAX_TEXT_SIZE, file->f_path.dentry->d_name.name);
 	//bpf_d_path(&file->f_path, e->file_info.filename, MAX_TEXT_SIZE);
 	bpf_ringbuf_submit(e, 0);
@@ -165,7 +165,7 @@ int BPF_PROG(fexit_vfs_unlink, struct inode *dir, struct dentry *dentry, struct 
 
 	e->type = 2;
 	get_common_info(e);
-	__builtin_memcpy(e->event_name, "vfs_unlink", sizeof("vfs_unlink"));
+	__builtin_memcpy(e->event_name, "delfile", sizeof("delfile"));
 	bpf_probe_read(e->file_info.filename, MAX_TEXT_SIZE, dentry->d_name.name);
 	bpf_ringbuf_submit(e, 0);
 	return 0;
@@ -188,7 +188,7 @@ int BPF_PROG(fexit_vfs_read, struct file *file, char *buf, size_t count, long lo
 		return 0;
 	e->type = READFILE;
 	get_common_info(e);
-	__builtin_memcpy(e->event_name, "vfs_read", sizeof("vfs_read"));
+	__builtin_memcpy(e->event_name, "readfile", sizeof("readfile"));
 	bpf_probe_read(e->file_info.filename, MAX_TEXT_SIZE, file->f_path.dentry->d_name.name);
 	//bpf_d_path(&file->f_path, e->file_info.filename, MAX_TEXT_SIZE);
 	bpf_ringbuf_submit(e, 0);
@@ -209,7 +209,7 @@ int BPF_PROG(fexit_vfs_utimes, const struct path *path, struct timespec64 *times
 
 	e->type = SETFILEATTR;
 	get_common_info(e);
-	__builtin_memcpy(e->event_name, "vfs_utimes", sizeof("vfs_utimes"));
+	__builtin_memcpy(e->event_name, "setfileattr", sizeof("setfileattr"));
 	bpf_probe_read(e->file_info.filename, MAX_TEXT_SIZE, path->dentry->d_name.name);
 	bpf_probe_read_str(e->file_info.name, MAX_TEXT_SIZE, name);
 	bpf_ringbuf_submit(e, 0);
@@ -230,7 +230,7 @@ int BPF_PROG(fexit_chmod_common, const struct path *path, umode_t mode, int ret)
 
 	e->type = SETFILEATTR;
 	get_common_info(e);
-	__builtin_memcpy(e->event_name, "chmod_common", sizeof("chmod_common"));
+	__builtin_memcpy(e->event_name, "setfileattr", sizeof("setfileattr"));
 	bpf_probe_read(e->file_info.filename, MAX_TEXT_SIZE, path->dentry->d_name.name);
 	bpf_probe_read_str(e->file_info.name, MAX_TEXT_SIZE, name);
 	bpf_ringbuf_submit(e, 0);
@@ -251,7 +251,7 @@ int BPF_PROG(fexit_chown_common, const struct path *path, uid_t user, gid_t grou
 
 	e->type = SETFILEATTR;
 	get_common_info(e);
-	__builtin_memcpy(e->event_name, "chown_common", sizeof("chown_common"));
+	__builtin_memcpy(e->event_name, "setfileattr", sizeof("setfileattr"));
 	bpf_probe_read(e->file_info.filename, MAX_TEXT_SIZE, path->dentry->d_name.name);
 	bpf_probe_read_str(e->file_info.name, MAX_TEXT_SIZE, name);
 	bpf_ringbuf_submit(e, 0);
@@ -271,7 +271,7 @@ int BPF_PROG(fentry__vfs_setxattr_noperm, struct dentry *dentry, const char *nam
 
 	e->type = SETFILEATTR;
 	get_common_info(e);
-	__builtin_memcpy(e->event_name, "__vfs_setxattr_noperm", sizeof("__vfs_setxattr_noperm"));
+	__builtin_memcpy(e->event_name, "setfileattr", sizeof("setfileattr"));
 	bpf_probe_read(e->file_info.filename, MAX_TEXT_SIZE, dentry->d_name.name);
 	bpf_probe_read_str(e->file_info.name, MAX_TEXT_SIZE, name);
 	bpf_ringbuf_submit(e, 0);
@@ -291,7 +291,7 @@ int BPF_PROG(fentry__vfs_removexattr_locked, struct dentry *dentry, const char *
 
 	e->type = SETFILEATTR;
 	get_common_info(e);
-	__builtin_memcpy(e->event_name, "__vfs_removexattr_locked", sizeof("__vfs_removexattr_locked"));
+	__builtin_memcpy(e->event_name, "setfileattr", sizeof("setfileattr"));
 	bpf_probe_read(e->file_info.filename, MAX_TEXT_SIZE, dentry->d_name.name);
 	bpf_probe_read_str(e->file_info.name, MAX_TEXT_SIZE, name);
 	bpf_ringbuf_submit(e, 0);
@@ -313,7 +313,7 @@ int BPF_PROG(fentry_vfs_rename, struct inode *old_dir, struct dentry *old_dentry
 
 	e->type = SETFILEATTR;
 	get_common_info(e);
-	__builtin_memcpy(e->event_name, "vfs_rename", sizeof("vfs_rename"));
+	__builtin_memcpy(e->event_name, "setfileattr", sizeof("setfileattr"));
 	bpf_probe_read(e->file_info.filename, MAX_TEXT_SIZE, old_dentry->d_name.name);
 	bpf_probe_read_str(e->file_info.name, MAX_TEXT_SIZE, name);
 	bpf_probe_read(e->file_info.value, MAX_TEXT_SIZE, new_dentry->d_name.name);
