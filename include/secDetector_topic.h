@@ -29,7 +29,7 @@
 #define SETPROCESSATTR 0x00000100
 /* program behavior */
 #define CREATEPIPE 0x00000200
-#define EXCMD 0x00000400
+#define EXECCMD 0x00000400
 #define CALLAPI 0x00000800
 /* network */
 #define ACCESSPORT 0x00001000

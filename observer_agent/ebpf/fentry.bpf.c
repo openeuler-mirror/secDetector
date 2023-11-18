@@ -20,7 +20,21 @@
 #include <bpf/bpf_helpers.h>
 #include <bpf/bpf_tracing.h>
 
-char LICENSE[] SEC("license") = "Dual BSD/GPL";
+#define MAX_NUM_ARGS 64
+#define RETURN_IF_OURSELF(retval) \
+do {   \
+	if (secdetector_pid == bpf_get_current_pid_tgid() >> 32) \
+		return retval;  \
+} while(0)
+#define RETURN_ZERO_IF_OURSELF() RETURN_IF_OURSELF(0)
+
+struct execve_arg {
+    __u64 unused;
+    __u32 nr;
+    const char *filename;
+    const char *const *argv;
+    const char *const *envp;
+};
 
 struct
 {
@@ -28,15 +42,8 @@ struct
     __uint(max_entries, 1024 * 1024);
 } rb SEC(".maps");
 
+char LICENSE[] SEC("license") = "Dual BSD/GPL";
 const volatile int secdetector_pid = -1;
-
-#define RETURN_IF_OURSELF(retval) \
-do {   \
-	if (secdetector_pid == bpf_get_current_pid_tgid() >> 32) \
-		return retval;  \
-} while(0)
-
-#define RETURN_ZERO_IF_OURSELF() RETURN_IF_OURSELF(0)
 
 static inline u32 get_task_sid(struct task_struct *task)
 {
@@ -143,6 +150,68 @@ int handle_exec(struct trace_event_raw_sched_process_exec *ctx)
     __builtin_memcpy(e->event_name, "sched_process_exec", sizeof("sched_process_exec"));
 
     bpf_ringbuf_submit(e, 0);
+    return 0;
+}
+
+SEC("tp/syscalls/sys_enter_execve")
+int handle_execve_cmd(struct execve_arg *ctx)
+{
+    struct ebpf_event *e = NULL;
+	RETURN_ZERO_IF_OURSELF();
+
+    e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
+    if (!e)
+        return 0;
+
+    get_common_info(e);
+    e->type = EXECCMD;
+    __builtin_memcpy(e->event_name, "execve_cmd", sizeof("execve_cmd"));
+
+    /* read filename */
+    bpf_probe_read_str(&e->process_info.filename, MAX_FILENAME_SIZE, ctx->filename);
+
+    /* read args loop */
+    long pos = 0;
+    for (int i = 0; i < MAX_NUM_ARGS; i++) {
+        const char *arg = NULL;
+
+        long res = bpf_probe_read_user(&arg, sizeof(arg), &ctx->argv[i]);
+        if (res != 0 || !arg)
+            break;
+
+        long len = bpf_probe_read_str(&e->process_info.argv[pos], MAX_TEXT_SIZE - pos, arg);
+        if (len < 0)
+            break;
+        pos += len;
+        if (pos >= MAX_TEXT_SIZE)
+            break;
+        e->process_info.argv[pos - 1] = ' ';
+    }
+    if (pos > 0)
+        e->process_info.argv[pos - 1] = '\0';
+
+    /* read envp loop */
+    pos = 0;
+    for (int i = 0; i < MAX_NUM_ARGS; i++) {
+        const char *envp = NULL;
+
+        long res = bpf_probe_read_user(&envp, sizeof(envp), &ctx->envp[i]);
+        if (res != 0 || !envp)
+            break;
+
+        long len = bpf_probe_read_str(&e->process_info.envp[pos], MAX_TEXT_SIZE - pos, envp);
+        if (len < 0)
+            break;
+        pos += len;
+        if (pos >= MAX_TEXT_SIZE)
+            break;
+        e->process_info.envp[pos - 1] = ' ';
+    }
+    if (pos > 0)
+        e->process_info.envp[pos - 1] = '\0';
+
+    bpf_ringbuf_submit(e, 0);
+
     return 0;
 }
 

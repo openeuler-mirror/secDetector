@@ -99,6 +99,15 @@ static std::string convert_destroy_process(struct ebpf_event *e)
     return ss.str();
 }
 
+static std::string convert_execve_cmd(struct ebpf_event *e)
+{
+    std::ostringstream ss;
+
+    ss << extract_common_info(e) << " filename:" << e->process_info.filename <<
+         " argv:" << e->process_info.argv << " envp:" << e->process_info.envp;
+    return ss.str();
+}
+
 static std::string convert_common_file(struct ebpf_event *e)
 {
     return extract_common_info(e) + " filename:" + e->file_info.filename ;
@@ -118,6 +127,7 @@ static std::map<int, convert_func_t> convert_funcs = {
     {SETFILEATTR, convert_set_file_attr},
     {WRITEFILE, convert_common_file},
     {READFILE, convert_common_file},
+    {EXECCMD, convert_execve_cmd},
 };
 
 std::string ebpf_event_to_text(struct ebpf_event *e)
