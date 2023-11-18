@@ -92,10 +92,17 @@ secDetector在架构上分为四个部分：SDK、Service、检测特性集合ca
 在支持rpm包安装环境，直接安装openEuler版本中的secDetector-xxx.rpm和开发包secDetector-devel-xxx.rpm，即可完成部署
 
 ## 使用说明
+### 运行 secDetectord 服务
+```
+用法：secDetectord [选项]
+secDetectord 默认会在后台运行，从探针中取得数据并转发给订阅者
+选项：
+  -d         进入调试模式，进入前台运行，并且在控制台打印探针数据。
+  -s <size>  配置eBPF缓冲区大小，单位为Mb，默认为4； size可选范围为4~1024，且必须为2的幂次方。当前拥有2个独立的缓冲区。
+  -t <topic> 支持配置订阅的事件，默认为所有事件。topic 是位图格式。例如 -t 0x60 同时订阅进程创建和进程退出事件。详细请查阅 include/secDetector_topic.h。
+```
 
-
-
-api接口说明
+### api接口说明
 
 接口名称	void *secSub(const int topic)
 接口描述	注册订阅接口
