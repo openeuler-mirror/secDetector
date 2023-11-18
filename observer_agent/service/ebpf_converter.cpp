@@ -22,14 +22,16 @@
 #include <map>
 #include <sstream>
 #include <unistd.h>
+#include <chrono>
 
+#define MAX_TIME_STR_SIZE 64
 typedef std::string (*convert_func_t)(struct ebpf_event *e);
 
 static std::string FindProcessPathFromPid(struct ebpf_event *e)
 {
     char *path = NULL;
     std::string link = "/proc/" + std::to_string(e->pid) + "/exe";
-    std::string exe = "null";
+    std::string exe = "";
 
     path = new char[PATH_MAX];
     memset(path, 0, PATH_MAX);
@@ -42,10 +44,38 @@ static std::string FindProcessPathFromPid(struct ebpf_event *e)
     return exe;
 }
 
+static std::string readlink_by_pid(int pid, std::string type)
+{
+    char path[PATH_MAX] = { 0 };
+    std::string link = "/proc/" + std::to_string(pid) + "/" + type;
+    std::string exe;
+
+    ssize_t len = readlink(link.c_str(), path, PATH_MAX);
+    if (len != -1)
+        exe = std::string(path);
+
+    return exe;
+}
+
+static std::string get_local_time(void)
+{
+    char tmp[MAX_TIME_STR_SIZE] = { 0 };
+    auto now = std::chrono::system_clock::now();
+    std::time_t time = std::chrono::system_clock::to_time_t(now);
+    std::tm *tm = std::localtime(&time);
+    if (!tm)
+        return "";
+
+    snprintf(tmp, MAX_TIME_STR_SIZE, "%04ld%02d%02d.%02d:%02d:%02d",
+            tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
+            tm->tm_hour, tm->tm_min, tm->tm_sec);
+    return std::string(tmp);
+}
+
 static std::string extract_common_info(struct ebpf_event *e)
 {
     std::ostringstream ss;
-    ss << "timestamp:" << e->timestamp << " event_name:" << e->event_name << " exe:" << FindProcessPathFromPid(e)
+    ss << "timestamp:" << get_local_time()  << " event_name:" << e->event_name << " exe:" << FindProcessPathFromPid(e)
        << " pid:" << e->pid << " tgid:" << e->tgid << " uid:" << e->uid << " gid:" << e->gid << " comm:" << e->comm
        << " sid:" << e->sid << " ppid:" << e->ppid << " pcomm:" << e->pcomm << " nodename:" << e->nodename
        << " pns:" << e->pns << " root_pns:" << e->pns;
@@ -67,6 +97,9 @@ static std::string extract_common_process_info(struct ebpf_event *e)
     ss << " user_ns:" << e->process_info.user_ns;
     ss << " uts_ns:" << e->process_info.uts_ns;
     ss << " time_ns:" << e->process_info.time_ns;
+
+    ss << " cwd:" << readlink_by_pid(e->pid, "cwd");
+    ss << " root:" << readlink_by_pid(e->pid, "root");
 
     return ss.str();
 }
