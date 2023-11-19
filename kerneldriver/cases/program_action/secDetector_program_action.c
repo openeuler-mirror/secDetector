@@ -307,8 +307,9 @@ static int ptrace_attach_pre_handler(struct secDetector_workflow *wf,
 			 timestamp, pi->uid, pi->exe, pi->pid, pi->comm, pi->tgid, pi->ppid, pi->pcomm, pi->pgid, pi->sid, pi->nodename, pi->pns, pi->root_pns,
 			 "ptrace_attach", attach_task->pid, current->pid, request, addr, flags);
 
-	secDetector_proc_report(&log);
+	secDetector_report(&log);
 	kfree(log.report_data.text);
+ 	put_common_process_info(pi);
 
 	return 0;
 }
@@ -335,8 +336,9 @@ static int do_pipe2_pre_handler(struct secDetector_workflow *wf,
 			 timestamp, pi->uid, pi->exe, pi->pid, pi->comm, pi->tgid, pi->ppid, pi->pcomm, pi->pgid, pi->sid, pi->nodename, pi->pns, pi->root_pns,
 			 "");
 
-	secDetector_proc_report(&log);
+	secDetector_report(&log);
 	kfree(log.report_data.text);
+	put_common_process_info(pi);
 
 	return 0;
 }
