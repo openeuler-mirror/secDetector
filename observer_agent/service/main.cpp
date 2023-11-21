@@ -164,7 +164,7 @@ int main(int argc, char *argv[])
         r = daemon(0, 0);
         if (r == -1)
         {
-            printf("daemon failed, r:%d\n");
+            printf("daemon failed, r:%d\n", r);
             exit(EXIT_FAILURE);
         }
     }
