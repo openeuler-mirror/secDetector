@@ -51,7 +51,7 @@ static bool power_of_2(unsigned int num)
 {
     if (num == 0)
         return false;
-    if (num & (num - 1) != 0)
+    if ((num & (num - 1)) != 0)
         return false;
     return true;
 }
