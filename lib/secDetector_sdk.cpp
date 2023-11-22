@@ -18,7 +18,7 @@
 #include <iostream>
 #include "../observer_agent/grpc_comm/grpc_api.h"
 
-#define ALLTOPIC 0x008FFFFF
+#define ALLTOPIC 0x00FFFFFF
 using namespace std;
 static string server_address("unix:///var/run/secDetector.sock");
 static PubSubClient g_client(grpc::CreateChannel(server_address, grpc::InsecureChannelCredentials()));
@@ -32,8 +32,10 @@ extern "C" {
 
 void *secSub(const int topic)
 {
-	if (!(topic & ALLTOPIC))
+	if (topic <= 0 || topic > ALLTOPIC) {
+		printf("secSub failed, topic:%d is error\n", topic);
 		return NULL;
+	}
 
 	unique_ptr<ClientReader<Message>> reader = g_client.Subscribe(topic);
 
@@ -47,8 +49,10 @@ void *secSub(const int topic)
 
 void secUnsub(const int topic, void *reader)
 {
-        if (!(topic & ALLTOPIC))
-                return;
+	if (topic <= 0 || topic > ALLTOPIC) {
+		printf("secUnsub failed, topic:%d is error\n", topic);
+		return;
+	}
 
 	if (!reader)
                 return;
