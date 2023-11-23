@@ -17,6 +17,7 @@ analyze_func_t analyze_units[NR_ANALYZE] = {
 	[ANALYZE_PRESET_SAVE_CHECK] = analyze_save_check,
 };
 
+// 不使用analyze_status_data的时候，data_type 为0，因此free_analyze_status_data不处理对应的 ANALYZE_STATUS。
 void free_analyze_status_data(analyze_status_t *analyze_status_data)
 {
 	switch (analyze_status_data->data.data_type) {

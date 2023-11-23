@@ -35,12 +35,14 @@ void secDetector_module_unregister(struct secDetector_module *module)
 	mutex_lock(&g_hook_list_array_mutex);
 	ret_id = idr_remove(&g_module_idr, (unsigned long)module->id);
 	if (ret_id == NULL) {
+		pr_err("[secDetector] remove module id failed\n");
 		goto error;
 	}
 
 	for (i = 0, wf = module->workflow_array; i < module->workflow_array_len;
 	     i++, wf++) {
 		if (wf == NULL) {
+			pr_err("[secDetector] invalid workflow\n");
 			goto error;
 		}
 		ret = delete_callback(wf);
@@ -48,15 +50,20 @@ void secDetector_module_unregister(struct secDetector_module *module)
 			pr_err("[secDetector] delete callback failed, return %d\n", ret);
 			goto error;
 		}
-		// workflow在被卸载的时候，需要释放analyze status等申请的内存,特别是使用默认的response list。
-		free_analyze_status_data(&wf->analyze_status);
-		if (wf->response_array_len == 0) {
+		if (wf->workflow_type == WORKFLOW_PRESET) {
+			// workflow在被卸载的时候，需要释放analyze status等申请的内存,特别是使用默认的response list。
+			free_analyze_status_data(&wf->analyze_status);
+			if (wf->response_array_len == 0) {
 			kfree(wf->response_array);
+			}
 		}
 	}
 
 error:
-	list_del_rcu(&module->list);
+	//secDetector_module_unregister 的执行流可能来源于 失败的register，因此module此时还未被list_add_rcu
+	if ((module->list.next != NULL) && (module->list.prev != NULL) &&
+		((module->list.next != &module->list) || (module->list.prev != &module->list)))
+		list_del_rcu(&module->list);
 	synchronize_rcu();
 	mutex_unlock(&g_hook_list_array_mutex);
 
@@ -125,6 +132,7 @@ int secDetector_module_register(struct secDetector_module *module)
 	for (i = 0, wf = module->workflow_array; i < module->workflow_array_len;
 	     i++, wf++) {
 		if (wf == NULL) {
+			pr_err("[secDetector] invalid workflow\n");
 			ret = -EINVAL;
 			goto error;
 		}
@@ -148,6 +156,7 @@ int secDetector_module_register(struct secDetector_module *module)
 					 param->proc_ops, param->data);
 		if (!param->entry) {
 			pr_err("[secDetector] create proc failed\n");
+			ret = -EINVAL;
 			goto error;
 		}
 	}
