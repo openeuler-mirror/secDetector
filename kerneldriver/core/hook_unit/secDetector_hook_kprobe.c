@@ -77,6 +77,8 @@ int insert_kprobe_hook(struct secDetector_workflow *workflow)
 int delete_kprobe_hook(struct secDetector_workflow *workflow)
 {
 	struct kprobe *kp = NULL;
+	const char *tmp_sym = NULL;
+	kprobe_pre_handler_t tmp_handler;
 
 	if (workflow == NULL)
 		return -1;
@@ -94,7 +96,14 @@ int delete_kprobe_hook(struct secDetector_workflow *workflow)
 		if (!kp)
 			return -1;
 
+		tmp_sym = kp->symbol_name;
+		tmp_handler = kp->pre_handler;
+
 		unregister_kprobe(kp);
+		//register mutiple times
+		memset(kp, 0, sizeof(struct kprobe));
+		kp->symbol_name = tmp_sym;
+		kp->pre_handler = tmp_handler;
 	}
 
 	return 0;
