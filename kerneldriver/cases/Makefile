@@ -8,7 +8,7 @@ obj-m += secDetector_kmodule_baseline.o
 # obj-m += secDetector_lsm_example.o
 obj-m += secDetector_program_action.o
 
-secDetector_memory_corruption-objs := memory_corruption/secDetector_memory_corruption.o memory_corruption/secDetector_mc_kmodule_list.o
+secDetector_memory_corruption-objs := memory_corruption/secDetector_memory_corruption.o 
 #secDetector_task_block-objs := task_block/secDetector_task_block.o
 #secDetector_file_block-objs := file_block/secDetector_file_block.o
 secDetector_kmodule_baseline-objs := kmodule_baseline/secDetector_kmodule_baseline.o kmodule_baseline/secDetector_mc_kmodule_baseline.o
