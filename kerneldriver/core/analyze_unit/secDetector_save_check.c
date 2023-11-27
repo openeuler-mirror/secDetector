@@ -129,7 +129,8 @@ static int analyze_save_check_normal(struct list_head *collect_data_list, analyz
 			response_arrays[response_array_index] = kmalloc(strlen(cd->name) + REPORT_MORE_CHAR_LEN, GFP_KERNEL);
 			if (response_arrays[response_array_index] == NULL) {
 				pr_err("kmalloc failed");
-				return -ENOMEM;
+				ret = -ENOMEM;
+				goto end;
 			}
 
 			strcpy(response_arrays[response_array_index], "[save_check]");
@@ -155,20 +156,22 @@ static int analyze_save_check_normal(struct list_head *collect_data_list, analyz
 		timestamp_len = get_timestamp_str(&timestamp);
 		response_data->report_data.type = event_type;
 		response_data->report_data.len = response_data_char_len + timestamp_len;
-		response_data->report_data.text = kmalloc(response_data_char_len + 1, GFP_KERNEL);
+		response_data->report_data.text = kmalloc(response_data->report_data.len + 1, GFP_KERNEL);
 		if (response_data->report_data.text == NULL) {
 			pr_err("kmalloc failed");
-			return -ENOMEM;
+			ret = -ENOMEM;
+			goto end;
 		}
 		if (timestamp_len > 0) {
 			strncat(response_data->report_data.text, timestamp, timestamp_len);
 			kfree(timestamp);
 		}
-		for (i = 0; i < response_array_index; i++) {
+		for (i = 0; i < response_array_index; i++)
 			strncat(response_data->report_data.text, response_arrays[i], strlen(response_arrays[i]));
-			kfree(response_arrays[i]);
-		}
 	}
+end:
+	for (i = 0; i < response_array_index; i++)
+		kfree(response_arrays[i]);
 	kfree(response_arrays);
 
 	return ret;

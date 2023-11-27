@@ -68,7 +68,7 @@ secDetector在架构上分为四个部分：SDK、Service、检测特性集合ca
 
   检测框架core是以一个cases依赖的基础框架，提供case的管理，和workflow所需的通用的基础功能单元。内核异常信息检测框架会以内核模块ko的形态承载。一个检测特性case可以将自己注册到框架中，或者从框架中去注册。框架还可以提供特定的交互接口以满足外部的动态请求。一个workflow被定义为有四类功能单元组成：事件发生器、信息采集器、事件分析器、响应单元。
 
-
+Driver分为两类，kerneldriver 和 usrdriver。顾名思义，kerneldriver是部署在内核态中的，以内核模块的形式承载。usrdriver是部署在用户态中的，直接被部署为Service中的一个模块。从逻辑上usrdriver是在Service之下的，但是在运行中，为了降低通信成本，usrdriver被直接集成在Service程序中。
 
 ## 安装教程
 - kerneldriver
