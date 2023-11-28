@@ -10,19 +10,11 @@
 #include <linux/seq_file.h>
 #include "secDetector_manager.h"
 #include <secDetector_module_type.h>
-#include "secDetector_mc_kmodule_list.h"
 
 
 #define TIME_INTERVAL 10
 DEFINE_MUTEX(case_mc_mutex);
 #define KERNELKEYDATATAMPER 0x00008000
-
-static void check_all_watching_memory(void)
-{
-	mutex_lock(&case_mc_mutex);
-	check_kmodule_list();
-	mutex_unlock(&case_mc_mutex);
-}
 
 static struct secDetector_collect collect_array[] = {
 	{
@@ -30,15 +22,7 @@ static struct secDetector_collect collect_array[] = {
 	},
 };
 
-
 static struct secDetector_workflow workflow_array[] = {
-	{
-		.workflow_type = WORKFLOW_CUSTOMIZATION,
-		.workflow_func.func = check_all_watching_memory,
-		.hook_type = SECDETECTOR_TIMER,
-		.interval = TIME_INTERVAL,
-		.enabled = ATOMIC_INIT(true)
-	},
 	{
 		.workflow_type = WORKFLOW_PRESET,
 		.hook_type = SECDETECTOR_TIMER,

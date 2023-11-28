@@ -22,7 +22,7 @@ MODULE_PARM_DESC(log_size, "log size");
 static unsigned int ringbuf_size = MIN_RINGBUF_SIZE; /* unit is Mb */
 static unsigned int ringbuf_size_bytes; /* unit is bytes */
 module_param(ringbuf_size, uint, 0400);
-MODULE_PARM_DESC(log_size, "ringbuffer size");
+MODULE_PARM_DESC(ringbuf_size, "ringbuffer size");
 
 static bool ringbuf_size_check(void)
 {
