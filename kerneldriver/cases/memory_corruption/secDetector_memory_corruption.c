@@ -27,6 +27,7 @@ static struct secDetector_workflow workflow_array[] = {
 		.workflow_type = WORKFLOW_PRESET,
 		.hook_type = SECDETECTOR_TIMER,
 		.collect_array = collect_array,
+		.collect_array_len = ARRAY_SIZE(collect_array),
 		.analyze_type = ANALYZE_PRESET_SAVE_CHECK,
 		.interval = TIME_INTERVAL,
 		.enabled = ATOMIC_INIT(true)
