@@ -17,7 +17,6 @@
 
 #define MODULE_LIST_MAXSIZE 0x10000
 #define NAME_LEN 4096
-#define HEADER_MSG_LEN 128
 #define KMODULE_BASELINE_TYPE 0x00800000
 
 typedef struct chkrkatt_module {
@@ -77,12 +76,6 @@ static void report_kmodule_baseline(void)
 	module_name_all = (char *)kzalloc(NAME_LEN, GFP_ATOMIC);
 	if (module_name_all == NULL) {
 		pr_err("module_name_all kzalloc failed\n");
-		return;
-	}
-	header_msg = (char *)kzalloc(HEADER_MSG_LEN, GFP_ATOMIC);
-	if (header_msg == NULL) {
-		pr_err("hearder_msg kzalloc failed\n");
-		kfree(module_name_all);
 		return;
 	}
 
