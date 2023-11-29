@@ -42,6 +42,7 @@
 
 #include "secDetector_manager.h"
 #include "secDetector_response.h"
+#include "secDetector_analyze.h"
 #include <secDetector_module_type.h>
 
 #define PATH_LEN 512
@@ -82,43 +83,6 @@ struct process_info {
 	unsigned int cgroup_ns;
 	int umask;
 };
-
-int get_timestamp_str(char **ret_str)
-{
-	struct timespec64 ts;
-	struct tm stm;
-	char *stm_str;
-	int stm_str_len = 0;
-
-	ktime_get_real_ts64(&ts);
-	time64_to_tm(ts.tv_sec, 0, &stm);
-
-	stm_str = (char *)kzalloc(TIME_STR_MAX_LEN, GFP_ATOMIC);
-	if (stm_str == NULL) {
-		pr_err("kzalloc failed\n");
-		*ret_str = NULL;
-		return 0;
-	}
-
-	stm_str_len = scnprintf(stm_str, TIME_STR_MAX_LEN,
-			"timestamp=%04ld%02d%02d.%02d:%02d:%02d ",
-			stm.tm_year + 1900, stm.tm_mon + 1, stm.tm_mday, stm.tm_hour, stm.tm_min, stm.tm_sec);
-	if (stm_str_len <= 0) {
-		pr_err("scnprintf failed\n");
-		kfree(stm_str);
-		*ret_str  = NULL;
-		return 0;
-	}
-
-	*ret_str = kstrdup(stm_str, GFP_KERNEL);
-	if (*ret_str == NULL) {
-		pr_err("kstrdup failed\n");
-		stm_str_len = 0;
-	}
-
-	kfree(stm_str);
-	return stm_str_len;
-}
 
 char *get_process_path(struct task_struct *p, char *pathname, int len)
 {
@@ -276,7 +240,7 @@ static int ptrace_attach_pre_handler(struct secDetector_workflow *wf,
 	response_data_t log;
 
 	if (!pi) {
-		pr_warn("get_common_process_info by fork failed\n");
+		pr_err("get_common_process_info by fork failed\n");
 		return 0;
 	}
 
@@ -302,6 +266,10 @@ static int ptrace_attach_pre_handler(struct secDetector_workflow *wf,
 	log.report_data.type = 0x00000800;
 	log.report_data.len = BUF_SIZE;
 	log.report_data.text = kzalloc(BUF_SIZE, GFP_ATOMIC);
+	if (!log.report_data.text) {
+		pr_err("log.report_data.text kzalloc failed!\n");
+		return 0;
+	}
 	snprintf(log.report_data.text, BUF_SIZE,
 			 "%s event_type=call_api uid=%d exe=%s pid=%d comm=%s tgid=%d ppid=%d pcomm=%s pgid=%d sid=%d nodename=%s pns=%u root_pns=%u api_name=%s api_arg=[attach_task_pid=%d cur_task_pid=%d request=%ld addr=%lu flags=%lu]\n",
 			 timestamp, pi->uid, pi->exe, pi->pid, pi->comm, pi->tgid, pi->ppid, pi->pcomm, pi->pgid, pi->sid, pi->nodename, pi->pns, pi->root_pns,
@@ -309,6 +277,7 @@ static int ptrace_attach_pre_handler(struct secDetector_workflow *wf,
 
 	secDetector_report(&log);
 	kfree(log.report_data.text);
+	kfree(timestamp);
  	put_common_process_info(pi);
 
 	return 0;
@@ -323,7 +292,7 @@ static int do_pipe2_pre_handler(struct secDetector_workflow *wf,
 	response_data_t log;
 
 	if (!pi) {
-		pr_warn("get_common_process_info by fork failed\n");
+		pr_err("get_common_process_info by fork failed\n");
 		return 0;
 	}
 	timestamp_len = get_timestamp_str(&timestamp);
@@ -331,6 +300,10 @@ static int do_pipe2_pre_handler(struct secDetector_workflow *wf,
 	log.report_data.type = 0x00000200;
 	log.report_data.len = BUF_SIZE;
 	log.report_data.text = kzalloc(BUF_SIZE, GFP_ATOMIC);
+	if (!log.report_data.text) {
+		pr_err("log.report_data.text kzalloc failed!\n");
+		return 0;
+	}
 	snprintf(log.report_data.text, BUF_SIZE,
 			 "%s event_type=createpipe uid=%d exe=%s pid=%d comm=%s tgid=%d ppid=%d pcomm=%s pgid=%d sid=%d nodename=%s pns=%u root_pns=%u dfd= pipe_name=%s\n",
 			 timestamp, pi->uid, pi->exe, pi->pid, pi->comm, pi->tgid, pi->ppid, pi->pcomm, pi->pgid, pi->sid, pi->nodename, pi->pns, pi->root_pns,
@@ -338,6 +311,7 @@ static int do_pipe2_pre_handler(struct secDetector_workflow *wf,
 
 	secDetector_report(&log);
 	kfree(log.report_data.text);
+	kfree(timestamp);
 	put_common_process_info(pi);
 
 	return 0;
