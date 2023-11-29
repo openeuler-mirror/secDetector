@@ -117,7 +117,31 @@ int BPF_PROG(do_filp_open_exit, int dfd, struct filename *pathname, const struct
 		return 0;
 
 	e->type = CREATFILE;
-	get_common_info(e);
+
+	struct task_struct *parent = NULL;
+	struct task_struct *task = NULL;
+
+	e->timestamp = bpf_ktime_get_ns();
+	e->pid = bpf_get_current_pid_tgid() >> 32;
+	e->pgid = e->tgid = bpf_get_current_pid_tgid() >> 32;
+	e->uid = bpf_get_current_uid_gid();
+	e->gid = bpf_get_current_uid_gid() >> 32;
+	bpf_get_current_comm(&e->comm, sizeof(e->comm));
+	/*
+	 * exe path is diffcult to get in ebpf, we can get it from userspace
+	 */
+	bpf_get_current_comm(&e->exe, sizeof(e->exe));
+
+	task = (struct task_struct *)bpf_get_current_task();
+	parent = (struct task_struct *)BPF_CORE_READ(task, real_parent);
+
+	e->ppid = BPF_CORE_READ(parent, pid);
+	e->sid = get_task_sid(task);
+	e->pns = BPF_CORE_READ(pid_ns(task), ns.inum);
+	e->root_pns = BPF_CORE_READ(pid_ns(find_init_task()), ns.inum);
+	BPF_CORE_READ_INTO(&e->pcomm, parent, real_parent, comm);
+	BPF_CORE_READ_INTO(&e->nodename, task, nsproxy, uts_ns, name.nodename);
+	//get_common_info(e);
 	__builtin_memcpy(e->event_name, "createfile", sizeof("createfile"));
 	bpf_probe_read(e->file_info.filename, MAX_TEXT_SIZE, pathname->name);
 	bpf_ringbuf_submit(e, 0);
