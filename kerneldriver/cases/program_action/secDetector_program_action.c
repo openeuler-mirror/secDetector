@@ -268,6 +268,7 @@ static int ptrace_attach_pre_handler(struct secDetector_workflow *wf,
 	log.report_data.text = kzalloc(BUF_SIZE, GFP_ATOMIC);
 	if (!log.report_data.text) {
 		pr_err("log.report_data.text kzalloc failed!\n");
+		kfree(timestamp);
 		return 0;
 	}
 	snprintf(log.report_data.text, BUF_SIZE,
@@ -302,6 +303,7 @@ static int do_pipe2_pre_handler(struct secDetector_workflow *wf,
 	log.report_data.text = kzalloc(BUF_SIZE, GFP_ATOMIC);
 	if (!log.report_data.text) {
 		pr_err("log.report_data.text kzalloc failed!\n");
+		kfree(timestamp);
 		return 0;
 	}
 	snprintf(log.report_data.text, BUF_SIZE,
