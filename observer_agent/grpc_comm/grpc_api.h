@@ -18,6 +18,8 @@ using grpc::ServerBuilder;
 using grpc::ServerContext;
 using grpc::ServerWriter;
 
+#define MAX_CONNECTION 5
+
 class PubSubServiceImpl final : public SubManager::Service
 {
   public:
@@ -26,7 +28,12 @@ class PubSubServiceImpl final : public SubManager::Service
     grpc::Status UnSubscribe(ServerContext *context, const UnSubscribeRequest *request, Message *response);
 
   private:
-    std::unordered_map<int, std::vector<ServerWriter<Message> *>> subscribers_;
+    std::unordered_map<std::string, std::vector<int>> suber_topic_;
+    std::unordered_map<std::string, std::vector<ServerWriter<Message> *>> suber_writer_;
+    std::unordered_map<std::string, std::vector<int>> suber_connection_;
+    std::mutex sub_mutex;
+    int connection_num = 0;
+    bool connect_status[MAX_CONNECTION] = {false};
 };
 
 void StopServer();

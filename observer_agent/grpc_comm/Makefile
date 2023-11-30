@@ -38,13 +38,7 @@ PROTOS_PATH = ./protos
 
 vpath %.proto $(PROTOS_PATH)
 
-all: system-check client server client_pub_demo client_sub_demo server_demo
-
-client: comm_api.pb.o comm_api.grpc.pb.o client.o
-	@echo "only compile client don't link"
-
-server: comm_api.pb.o comm_api.grpc.pb.o server.o
-	@echo "only compile server don't link"
+all: system-check client_pub_demo client_sub_demo server_demo
 
 client_pub_demo: comm_api.pb.o comm_api.grpc.pb.o client.o client_pub_demo.o
 	$(CXX) $^ $(LDFLAGS) -o $@
