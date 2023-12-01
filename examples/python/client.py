@@ -36,9 +36,11 @@ secDetectorsdklib.secUnsub.restype = None
 secDetectorsdklib.secReadFrom.argtypes = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int]
 secDetectorsdklib.secReadFrom.restype = None
 
+g_read_flag = True
 
 def thread_func_sub_and_read(num=0):
     global g_cli_reader
+    global g_read_flag
 
     cli_reader = secDetectorsdklib.secSub(1)
     g_cli_reader_lock.acquire()
@@ -50,10 +52,7 @@ def thread_func_sub_and_read(num=0):
     secDetectorsdklib.secReadFrom(cli_reader, data, data_len)
     print("client read data:{}".format(data.value.decode()))
 
-    while True:
-        if data.value.decode() == 'end':
-            print("client received end")
-            break
+    while g_read_flag:
         time.sleep(3)
         secDetectorsdklib.secReadFrom(cli_reader, data, data_len)
         print("client while read data:{}".format(data.value.decode()))
@@ -62,8 +61,11 @@ def thread_func_sub_and_read(num=0):
 
 def thread_func_unsub(num=0):
     global g_cli_reader
+    global g_read_flag
+
     g_cli_reader_lock.acquire()
     try:
+        g_read_flag = False
         secDetectorsdklib.secUnsub(1, g_cli_reader)
     finally:
         g_cli_reader_lock.release()

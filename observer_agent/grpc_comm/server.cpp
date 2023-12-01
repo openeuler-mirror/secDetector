@@ -104,7 +104,6 @@ class PubSubServiceImpl final : public SubManager::Service
         keepalive_msg.set_text("keepalive");
         while (connect_status[tmp_index])
         {
-            sleep(CHECK_TIME);
             if (!writer->Write(keepalive_msg))
             {
                 for (auto topic_item : suber_topic_[cli_name])
@@ -124,6 +123,7 @@ class PubSubServiceImpl final : public SubManager::Service
                 }
                 return grpc::Status(grpc::StatusCode::INTERNAL, "writer is lose!");
             }
+            sleep(CHECK_TIME);
         }
         return grpc::Status::OK;
     }
