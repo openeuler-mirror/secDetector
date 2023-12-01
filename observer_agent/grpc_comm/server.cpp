@@ -28,6 +28,7 @@ using grpc::ServerContext;
 using grpc::ServerWriter;
 
 #define MAX_CONNECTION 5
+#define CHECK_TIME 60
 
 class PubSubServiceImpl final : public SubManager::Service
 {
@@ -38,6 +39,8 @@ class PubSubServiceImpl final : public SubManager::Service
         int cli_topic = request->topic();
         std::string cli_name = request->sub_name();
         Message msg;
+        Message keepalive_msg;
+        int i = 0, tmp_index;
 
         if (connection_num >= MAX_CONNECTION) {
             msg.set_text("over max connection number!");
@@ -65,8 +68,28 @@ class PubSubServiceImpl final : public SubManager::Service
 
         sub_mutex.lock();
 
+        for (tmp_index = 0; tmp_index <  MAX_CONNECTION; tmp_index++)
+        {
+            if (!connect_status[tmp_index])
+                break;
+        }
+
+        if (tmp_index == MAX_CONNECTION)
+        {
+            sub_mutex.unlock();
+            msg.set_text("multi-process max connection number!");
+            if (!writer->Write(msg))
+            {
+                std::cerr << "Failed to write the initial message" << std::endl;
+                return grpc::Status(grpc::StatusCode::INTERNAL, "Failed to write the message");
+            }
+            return grpc::Status(grpc::StatusCode::INTERNAL, "multi-process max connection number, Failed to Subscribe the topic");
+        }
+
         suber_topic_[cli_name].push_back(cli_topic);
         suber_writer_[cli_name].push_back(writer);
+        suber_connection_[cli_name].push_back(tmp_index);
+        connect_status[tmp_index] = true;
         connection_num++;
 
         sub_mutex.unlock();
@@ -78,9 +101,29 @@ class PubSubServiceImpl final : public SubManager::Service
             return grpc::Status(grpc::StatusCode::INTERNAL, "Failed to write the message");
         }
 
-        // ToDo: set some condition to break loop
-        while (1)
+        keepalive_msg.set_text("keepalive");
+        while (connect_status[tmp_index])
         {
+            sleep(CHECK_TIME);
+            if (!writer->Write(keepalive_msg))
+            {
+                for (auto topic_item : suber_topic_[cli_name])
+                {
+                    if (topic_item == cli_topic)
+                    {
+                        sub_mutex.lock();
+                        suber_topic_[cli_name].erase(suber_topic_[cli_name].begin() + i);
+                        suber_writer_[cli_name].erase(suber_writer_[cli_name].begin() + i);
+                        connect_status[suber_connection_[cli_name].at(i)] = false;
+                        suber_connection_[cli_name].erase(suber_connection_[cli_name].begin() + i);
+                        connection_num--;
+                        sub_mutex.unlock();
+                        break;
+                    }
+                    i++;
+                }
+                return grpc::Status(grpc::StatusCode::INTERNAL, "writer is lose!");
+            }
         }
         return grpc::Status::OK;
     }
@@ -136,6 +179,8 @@ class PubSubServiceImpl final : public SubManager::Service
             {
                 suber_topic_[cli_name].erase(suber_topic_[cli_name].begin() + i);
                 suber_writer_[cli_name].erase(suber_writer_[cli_name].begin() + i);
+                connect_status[suber_connection_[cli_name].at(i)] = false;
+                suber_connection_[cli_name].erase(suber_connection_[cli_name].begin() + i);
                 connection_num--;
                 unsub_flag = 1;
                 break;
@@ -155,8 +200,10 @@ class PubSubServiceImpl final : public SubManager::Service
   private:
     std::unordered_map<std::string, std::vector<int>> suber_topic_;
     std::unordered_map<std::string, std::vector<ServerWriter<Message> *>> suber_writer_;
+    std::unordered_map<std::string, std::vector<int>> suber_connection_;
     std::mutex sub_mutex;
     int connection_num = 0;
+    bool connect_status[MAX_CONNECTION] = {false};
 };
 
 std::unique_ptr<Server> server;
