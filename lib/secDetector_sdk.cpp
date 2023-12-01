@@ -55,14 +55,14 @@ void secUnsub(const int topic, void *reader)
 	}
 
 	if (!reader)
-                return;
+		return;
 
-	g_client.Publish(topic, "end");
 	g_client.UnSubscribe(topic);
 	
 	Readmap::iterator iter = g_reader_map.find(reader);
 	if (iter != g_reader_map.end()) {
 		g_reader_map.erase(iter);
+		reader = NULL;
 	}
 }
 
@@ -70,13 +70,20 @@ void secReadFrom(void *reader, char *data, int data_len)
 {
 	string msg("");
 
-        if (!reader || !data || data_len <= 1)
-                return;
+	if (!data || data_len <= 1)
+		return
+
+	memset(data, 0, data_len);
+
+	if (!reader)
+		return;
 
 	Readmap::iterator iter = g_reader_map.find(reader);
-        if (iter != g_reader_map.end()) {
+	if (iter != g_reader_map.end()) {
 		msg = g_client.ReadFrom(iter->second);
-        }
+		if (msg == "keepalive")
+			return;
+	}
 
 	strncpy(data, msg.c_str(), data_len - 1);
 }
