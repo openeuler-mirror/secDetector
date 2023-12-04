@@ -86,6 +86,14 @@ class PubSubServiceImpl final : public SubManager::Service
             return grpc::Status(grpc::StatusCode::INTERNAL, "multi-process max connection number, Failed to Subscribe the topic");
         }
 
+        msg.set_text("topic: " + std::to_string(cli_topic) + " Subscribe success!");
+        if (!writer->Write(msg))
+        {
+            std::cerr << "Failed to write the initial message" << std::endl;
+            sub_mutex.unlock();
+            return grpc::Status(grpc::StatusCode::INTERNAL, "Failed to write the message");
+        }
+
         suber_topic_[cli_name].push_back(cli_topic);
         suber_writer_[cli_name].push_back(writer);
         suber_connection_[cli_name].push_back(tmp_index);
@@ -93,13 +101,6 @@ class PubSubServiceImpl final : public SubManager::Service
         connection_num++;
 
         sub_mutex.unlock();
-
-        msg.set_text("topic: " + std::to_string(cli_topic) + " Subscribe success!");
-        if (!writer->Write(msg))
-        {
-            std::cerr << "Failed to write the initial message" << std::endl;
-            return grpc::Status(grpc::StatusCode::INTERNAL, "Failed to write the message");
-        }
 
         keepalive_msg.set_text("keepalive");
         while (connect_status[tmp_index])
