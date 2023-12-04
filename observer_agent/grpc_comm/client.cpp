@@ -29,6 +29,8 @@ using grpc::ClientReader;
 
 #define BUF_NUM 1024
 
+PubSubClient::PubSubClient() {}
+
 PubSubClient::PubSubClient(std::shared_ptr<Channel> channel) : stub_(SubManager::NewStub(channel))
 {
     uuid_t uuid;
@@ -36,6 +38,16 @@ PubSubClient::PubSubClient(std::shared_ptr<Channel> channel) : stub_(SubManager:
     uuid_generate(uuid);
     uuid_unparse(uuid, uuid_temp);
     uuid_str = std::string(uuid_temp);
+}
+
+void PubSubClient::init(std::shared_ptr<Channel> channel)
+{
+    uuid_t uuid;
+    char uuid_temp[37];
+    uuid_generate(uuid);
+    uuid_unparse(uuid, uuid_temp);
+    uuid_str = std::string(uuid_temp);
+    stub_ = SubManager::NewStub(channel);
 }
 
 std::unique_ptr<ClientReader<Message>> PubSubClient::Subscribe(const int topic)

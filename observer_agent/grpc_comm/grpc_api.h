@@ -42,7 +42,9 @@ void RunServer();
 class PubSubClient
 {
   public:
+    PubSubClient();
     PubSubClient(std::shared_ptr<Channel> channel);
+    void init(std::shared_ptr<Channel> channel);
     std::unique_ptr<ClientReader<Message>> Subscribe(const int topic);
     void Publish(const int topic, const std::string &content);
     void UnSubscribe(const int topic);
