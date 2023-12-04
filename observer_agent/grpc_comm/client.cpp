@@ -43,16 +43,22 @@ std::unique_ptr<ClientReader<Message>> PubSubClient::Subscribe(const int topic)
     SubscribeRequest request;
     request.set_topic(topic);
     request.set_sub_name(uuid_str);
+    std::string ret_info;
 
     Message msg;
     SubFlag = true;
     std::unique_ptr<ClientReader<Message>> reader = stub_->Subscribe(&context, request);
-    if (reader == nullptr)
+    ret_info = ReadFrom(reader);
+
+    if (ret_info.substr(0, 6) == "topic:")
+    {
+        std::cout << "Success subscribe." << std::endl;
+        return reader;
+    } else
     {
         std::cerr << "Failed to subscribe." << std::endl;
         return nullptr;
     }
-    return reader;
 }
 
 void PubSubClient::Publish(const int topic, const std::string &content)
