@@ -80,6 +80,10 @@ static void sig_handler(int sig)
 }
 static bool debug = false;
 
+static std::string server_address("unix:///var/run/secDetector.sock");
+PubSubClient client;
+std::mutex pub_mutex;
+
 static void push_log(int type, const std::string &content)
 {
     if ((topic_mask & type)  == 0)
@@ -92,8 +96,7 @@ static void push_log(int type, const std::string &content)
     }
 
     // push to grpc
-    std::string server_address("unix:///var/run/secDetector.sock");
-    PubSubClient client(grpc::CreateChannel(server_address, grpc::InsecureChannelCredentials()));
+    std::lock_guard<std::mutex> lock(pub_mutex);
     client.Publish(type, content);
 }
 
@@ -179,6 +182,7 @@ int main(int argc, char *argv[])
     std::thread thread_grpc = std::thread(RunServer);
     std::thread thread_ebpf_process = std::thread(StartProcesseBPFProg, ebpf_cb, ringbuf_size_bytes, topic_mask);
     std::thread thread_ebpf_file = std::thread(StartFileBPFProg, ebpf_cb, ringbuf_size_bytes, topic_mask);
+    client.init(grpc::CreateChannel(server_address, grpc::InsecureChannelCredentials()));
 
     while (exiting == 0)
     {
