@@ -67,3 +67,4 @@ json11::Json getInfofileJsonPID(int pid);
 json11::Json getProcessesInfoAll();
 json11::Json getProcessesInfoByPid(pid_t pid);
 json11::Json tcp4data();
+json11::Json  getSSHInfoAll();

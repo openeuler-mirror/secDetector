@@ -8,7 +8,7 @@
 #define DELAYTIME 1
 // 延时秒数
 
-std::thread backendThread([&]() {
+std::thread backendThread([]() {
     while (true) {
         auto data = get_data();
         std::ofstream file("sys_rtime.json", std::ios::out); 

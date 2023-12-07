@@ -12,6 +12,7 @@ json11::Json get_data(){
         {"fileinfo", getInfofileJson()},
         {"meminfo", getAllMemoryInfo()},
         {"pidinfo", getProcessesInfoAll()},
+        {"sshinfo", getSSHInfoAll()},
 
     };
     

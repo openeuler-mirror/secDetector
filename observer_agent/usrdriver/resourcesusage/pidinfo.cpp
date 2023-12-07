@@ -105,11 +105,16 @@ std::vector<pid_t> getChildProcesses(pid_t pid) {
 }
 json11::Json getProcessesInfoJson(int totalProcessCount, int totalThreadCount, int totalChildProcesses, double pidUsageRatio, int pid, int threadsSize, int childProcessesSize)
 {
+
+    // 将 PID 使用率转换为字符串
+    std::ostringstream pidUsageStr;
+    pidUsageStr << std::fixed << pidUsageRatio;
+
     return json11::Json::object{
         {"Total_Process", totalProcessCount},
         {"Total_Threads", totalThreadCount},
         {"Total_Child_Processes", totalChildProcesses},
-        {"PID_Usage_Ratio", pidUsageRatio},
+        {"PID_Usage_Ratio", pidUsageStr.str()},
         {"PID", pid},
         {"Child_Processes", threadsSize},
         {"Child_Threads", childProcessesSize}};
