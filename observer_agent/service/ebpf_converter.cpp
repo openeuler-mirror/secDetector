@@ -158,7 +158,7 @@ static std::map<int, convert_func_t> convert_funcs = {
     {CREATPROCESS, convert_creat_process},
     {DESTROYPROCESS, convert_destroy_process},
     {SETPROCESSATTR, convert_set_process_attr},
-    {CREATFILE, convert_common_file},
+    {CREATEFILE, convert_common_file},
     {DELFILE, convert_common_file},
     {SETFILEATTR, convert_set_file_attr},
     {WRITEFILE, convert_common_file},

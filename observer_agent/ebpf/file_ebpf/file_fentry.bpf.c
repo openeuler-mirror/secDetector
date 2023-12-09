@@ -13,6 +13,7 @@
 
 #define O_CREAT 100
 #define LOOKUP_CREATE 0x0200
+#define FMODE_CREATED 0x100000
 
 char LICENSE[] SEC("license") = "Dual BSD/GPL";
 
@@ -112,12 +113,14 @@ int BPF_PROG(do_filp_open_exit, int dfd, struct filename *pathname, const struct
 		return 0;
 	if (!S_ISREG(ret_file->f_inode->i_mode))
 		return 0;
+	if (!(ret_file->f_mode & FMODE_CREATED))
+		return 0;
 
 	e = bpf_ringbuf_reserve(&rb, sizeof(*e), 0);
 	if (!e)
 		return 0;
 
-	e->type = CREATFILE;
+	e->type = CREATEFILE;
 
 	struct task_struct *parent = NULL;
 	struct task_struct *task = NULL;
