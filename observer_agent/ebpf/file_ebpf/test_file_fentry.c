@@ -9,7 +9,7 @@ static int handle_event(void *ctx, void *data, size_t data_sz)
 	printf("timestamp:%llu event_name:%s exe:%s pid:%u tgid:%u uid:%u gid:%u comm:%s"
 		" sid:%u ppid:%u pgid:%u pcomm:%s nodename:%s pns:%u root_pns:%u",
 		e->timestamp, e->event_name, e->exe, e->pid, e->tgid, e->uid, e->gid, e->comm, e->sid, e->ppid, e->pgid,e->pcomm, e->nodename, e->pns, e->root_pns);
-    	if (e->type & (CREATFILE | DELFILE | SETFILEATTR | WRITEFILE | READFILE))
+	if (e->type & (CREATEFILE | DELFILE | SETFILEATTR | WRITEFILE | READFILE))
 		printf(" filename:%s", e->file_info.filename);
 	if (e->type & SETFILEATTR)
 		printf(" name:%s value:%s old_value:%s", e->file_info.name, e->file_info.value,e->file_info.old_value);

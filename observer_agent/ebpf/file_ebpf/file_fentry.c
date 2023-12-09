@@ -44,7 +44,7 @@ static void DisableProg(struct bpf_object_skeleton *s, const char *prog_name)
 
 static void DisableProgBasedOnMask(struct bpf_object_skeleton *skel, int mask)
 {
-    if ((mask & CREATFILE) == 0) {
+    if ((mask & CREATEFILE) == 0) {
         DisableProg(skel, "do_filp_open_exit");
     }
 
