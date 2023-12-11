@@ -18,7 +18,7 @@
 #define SECDETECTOR_SDK_H
 
 void *secSub(const int topic);
-void secUnsub(const int topic, void *reader);
+void secUnsub(void *reader);
 void secReadFrom(void *reader, char *data, int data_len);
 
 #endif

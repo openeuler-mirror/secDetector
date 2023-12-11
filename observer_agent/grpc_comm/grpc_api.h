@@ -48,7 +48,7 @@ class PubSubClient
     void init(std::shared_ptr<Channel> channel);
     std::unique_ptr<ClientReader<Message>> Subscribe(const int topic);
     void Publish(const int topic, const std::string &content);
-    void UnSubscribe(const int topic);
+    void UnSubscribe(void);
     std::string ReadFrom(std::unique_ptr<ClientReader<Message>> &reader);
 
   private:
