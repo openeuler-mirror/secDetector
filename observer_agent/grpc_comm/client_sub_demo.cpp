@@ -34,7 +34,7 @@ int main(int argc, char **argv)
         some_data = client.ReadFrom(cli_reader);
         std::cout << "loop whz: " << some_data << std::endl;
     }
-    client.UnSubscribe(std::stoi(argv[1]));
+    client.UnSubscribe();
 
     return 0;
 }

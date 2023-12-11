@@ -62,13 +62,9 @@ void *secSub(const int topic)
 	return ret_reader;
 }
 
-void secUnsub(const int topic, void *reader)
+void secUnsub(void *reader)
 {
 	PubSubClient *cur_client;
-	if (topic <= 0 || topic > ALLTOPIC) {
-		printf("lib secUnsub failed, topic:%d is error\n", topic);
-		return;
-	}
 
 	if (!reader)
 		return;
@@ -77,7 +73,7 @@ void secUnsub(const int topic, void *reader)
 	Readmap::iterator iter = g_reader_map.find(reader);
 	if (iter != g_reader_map.end()) {
 		cur_client = iter->second.second;
-		cur_client->UnSubscribe(topic);
+		cur_client->UnSubscribe();
 		g_reader_map.erase(iter);
 		reader = NULL;
 		delete cur_client;

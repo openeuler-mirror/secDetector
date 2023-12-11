@@ -31,7 +31,7 @@ g_cli_reader_lock = threading.Lock()
 
 secDetectorsdklib.secSub.argtypes = [ctypes.c_int]
 secDetectorsdklib.secSub.restype = ctypes.c_void_p
-secDetectorsdklib.secUnsub.argtypes = [ctypes.c_int, ctypes.c_void_p]
+secDetectorsdklib.secUnsub.argtypes = [ctypes.c_void_p]
 secDetectorsdklib.secUnsub.restype = None
 secDetectorsdklib.secReadFrom.argtypes = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int]
 secDetectorsdklib.secReadFrom.restype = None
@@ -66,7 +66,7 @@ def thread_func_unsub(num=0):
     g_cli_reader_lock.acquire()
     try:
         g_read_flag = False
-        secDetectorsdklib.secUnsub(1, g_cli_reader)
+        secDetectorsdklib.secUnsub(g_cli_reader)
     finally:
         g_cli_reader_lock.release()
     print("client thread_func_unsub end")

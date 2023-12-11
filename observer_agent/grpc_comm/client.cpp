@@ -87,10 +87,9 @@ void PubSubClient::Publish(const int topic, const std::string &content)
     }
 }
 
-void PubSubClient::UnSubscribe(const int topic)
+void PubSubClient::UnSubscribe(void)
 {
     UnSubscribeRequest request;
-    request.set_topic(topic);
     request.set_sub_name(uuid_str);
 
     ClientContext unsub_context;

@@ -176,7 +176,6 @@ class PubSubServiceImpl final : public SubManager::Service
 
     grpc::Status UnSubscribe(ServerContext *context, const UnSubscribeRequest *request, Message *response) override
     {
-        int cli_topic = request->topic();
         std::string cli_name = request->sub_name();
         int i = 0;
         int unsub_flag = 0;
@@ -189,27 +188,23 @@ class PubSubServiceImpl final : public SubManager::Service
 
         std::lock_guard<std::mutex> lock(sub_mutex);
 
-        for (auto topic_item : suber_topic_[cli_name])
+        std::unordered_map<std::string, std::vector<int>>::iterator iter = suber_topic_.find(cli_name);
+        if (iter != suber_topic_.end())
         {
-            if (topic_item == cli_topic)
-            {
-                suber_topic_[cli_name].erase(suber_topic_[cli_name].begin() + i);
-                suber_writer_[cli_name].erase(suber_writer_[cli_name].begin() + i);
-                connect_status[suber_connection_[cli_name].at(i)] = false;
-                suber_connection_[cli_name].erase(suber_connection_[cli_name].begin() + i);
-                connection_num--;
-                unsub_flag = 1;
-                break;
-            }
-            i++;
+            suber_topic_[cli_name].erase(suber_topic_[cli_name].begin() + i);
+            suber_writer_[cli_name].erase(suber_writer_[cli_name].begin() + i);
+            connect_status[suber_connection_[cli_name].at(i)] = false;
+            suber_connection_[cli_name].erase(suber_connection_[cli_name].begin() + i);
+            connection_num--;
+            unsub_flag = 1;
         }
 
         if (!unsub_flag)
         {
-            response->set_text("don't exist the topic: " + std::to_string(cli_topic));
-            return grpc::Status(grpc::StatusCode::INTERNAL, "Failed to UnSubscribe topic!");
+            response->set_text("don't exist the reader");
+            return grpc::Status(grpc::StatusCode::INTERNAL, "Failed to UnSubscribe reader!");
         }
-        response->set_text("topic: " + std::to_string(cli_topic) + " UnSubscribe success!");
+        response->set_text("UnSubscribe success!");
         return grpc::Status::OK;
     }
 
