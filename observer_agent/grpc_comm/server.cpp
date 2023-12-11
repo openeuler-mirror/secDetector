@@ -16,6 +16,7 @@
 #include "comm_api.grpc.pb.h"
 #include <grpcpp/grpcpp.h>
 #include <sys/stat.h>
+#include <condition_variable>
 
 using data_comm::Message;
 using data_comm::PublishRequest;
@@ -30,9 +31,23 @@ using grpc::ServerWriter;
 #define MAX_CONNECTION 5
 #define CHECK_TIME 60
 
+static bool killed = false;
+
 class PubSubServiceImpl final : public SubManager::Service
 {
   public:
+    void CloseAllConnection(void)
+    {
+	std::lock_guard<std::mutex> lk(wait_mutex);
+
+        for (int i = 0; i < MAX_CONNECTION; i++) {
+            connect_status[i] = false;
+	}
+
+        killed = true;
+        cv.notify_all();
+    }
+
     grpc::Status Subscribe(ServerContext *context, const SubscribeRequest *request,
                            ServerWriter<Message> *writer) override
     {
@@ -124,7 +139,7 @@ class PubSubServiceImpl final : public SubManager::Service
                 }
                 return grpc::Status(grpc::StatusCode::INTERNAL, "writer is lose!");
             }
-            sleep(CHECK_TIME);
+            WaitKeeplive();
         }
         return grpc::Status::OK;
     }
@@ -203,21 +218,30 @@ class PubSubServiceImpl final : public SubManager::Service
     std::unordered_map<std::string, std::vector<ServerWriter<Message> *>> suber_writer_;
     std::unordered_map<std::string, std::vector<int>> suber_connection_;
     std::mutex sub_mutex;
+    std::mutex wait_mutex;
+    std::condition_variable cv;
     int connection_num = 0;
     bool connect_status[MAX_CONNECTION] = {false};
+
+    void WaitKeeplive(void)
+    {
+	std::unique_lock<std::mutex> lk(wait_mutex);
+	cv.wait_for(lk, std::chrono::seconds(CHECK_TIME), []{ return killed; });
+    }
 };
 
-std::unique_ptr<Server> server;
+static std::unique_ptr<Server> server;
+static PubSubServiceImpl service;
 
 void StopServer()
 {
+    service.CloseAllConnection();
     server->Shutdown();
 }
 
 void RunServer()
 {
     std::string server_address("unix:///var/run/secDetector.sock");
-    PubSubServiceImpl service;
 
     ServerBuilder builder;
     builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());

@@ -26,6 +26,7 @@ class PubSubServiceImpl final : public SubManager::Service
     grpc::Status Subscribe(ServerContext *context, const SubscribeRequest *request, ServerWriter<Message> *writer);
     grpc::Status Publish(ServerContext *context, const PublishRequest *request, Message *response);
     grpc::Status UnSubscribe(ServerContext *context, const UnSubscribeRequest *request, Message *response);
+    void CloseAllConnection(void);
 
   private:
     std::unordered_map<std::string, std::vector<int>> suber_topic_;
