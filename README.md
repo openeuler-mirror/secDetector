@@ -109,11 +109,11 @@ secDetectord 默认会在后台运行，从探针中取得数据并转发给订�
 参数	“topic”:注册的事件类型，具体可见” /usr/include/secDetector/secDetector_sdk.h”中定义
 输出	返回读取事件的指针
 
-接口名称	void secUnsub(const int topic, void *reader)
+接口名称	void secUnsub(void *reader)
 接口描述	注销订阅接口
-参数	“topic”:注销的事件类型， “reader”:注销的读事件指针
+参数	“reader”:注销的读事件指针
 输出	无
-注意事项	当前会全部取消，不支持指定reader取消
+注意事项	当前会取消reader的全部订阅
 
 接口名称	void secReadFrom(void *reader, char *data, int data_len)
 接口描述	读事件信息接口
