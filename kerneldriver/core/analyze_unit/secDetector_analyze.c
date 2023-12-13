@@ -33,7 +33,7 @@ int get_timestamp_str(char **ret_str)
 {
 	struct timespec64 ts;
 	struct tm stm;
-	char *stm_str;
+	char *stm_str = NULL;
 	int stm_str_len = 0;
 
 	ktime_get_real_ts64(&ts);

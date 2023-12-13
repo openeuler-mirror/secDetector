@@ -115,12 +115,14 @@ int secDetector_module_register(struct secDetector_module *module)
 	int i;
 	int module_id;
 	unsigned int callback_id = 0;
-	struct secDetector_parameter *param = module->parameter;
+	struct secDetector_parameter *param = NULL;
 
 	if (module == NULL) {
 		pr_err("[secDetector] register module is null\n");
 		return -EINVAL;
 	}
+
+	param = module->parameter;
 
 	module_id = idr_alloc(&g_module_idr, module, 0, INT_MAX, GFP_KERNEL);
 	if (module_id < 0) {

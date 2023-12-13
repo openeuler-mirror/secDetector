@@ -17,7 +17,10 @@ DEFINE_MUTEX(case_kmodule_mutex);
 
 static void check_watching_kmodule(void)
 {
-        mutex_lock(&case_kmodule_mutex);
+	if (mutex_trylock(&case_kmodule_mutex) == 0) {
+		pr_warn("[secDetector case kmodule baseline] check cann't getlock, ret\n");
+		return;
+	}
         check_kmodule_baseline();
         mutex_unlock(&case_kmodule_mutex);
 }

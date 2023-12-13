@@ -34,7 +34,7 @@ extern "C" {
 
 void *secSub(const int topic)
 {
-	PubSubClient *cur_client;
+	PubSubClient *cur_client = nullptr;
 	if (topic <= 0 || topic > ALLTOPIC) {
 		printf("lib secSub failed, topic:%d is error\n", topic);
 		return NULL;
@@ -64,7 +64,7 @@ void *secSub(const int topic)
 
 void secUnsub(void *reader)
 {
-	PubSubClient *cur_client;
+	PubSubClient *cur_client = nullptr;
 
 	if (!reader)
 		return;
@@ -84,7 +84,7 @@ void secUnsub(void *reader)
 void secReadFrom(void *reader, char *data, int data_len)
 {
 	string msg("");
-	PubSubClient *cur_client;
+	PubSubClient *cur_client = nullptr;
 
 	if (!data || data_len <= 1)
 		return
