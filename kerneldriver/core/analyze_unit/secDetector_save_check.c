@@ -124,25 +124,25 @@ static int analyze_save_check_normal(struct list_head *collect_data_list, analyz
 				break;
 		}
 		if (measure_value != analyze_status_data->sc_data.data[data_index]) {
-			pr_debug("[save_check]%s: original: %llx; now: %llx.!\n",
+			pr_debug("[save_check]%s: original: %lld; now: %lld.!\n",
 					cd->name, analyze_status_data->sc_data.data[data_index], measure_value);
-			response_arrays[response_array_index] = kmalloc(strlen(cd->name) + REPORT_MORE_CHAR_LEN, GFP_KERNEL);
+			response_arrays[response_array_index] = kzalloc(strlen(cd->name) + REPORT_MORE_CHAR_LEN, GFP_KERNEL);
 			if (response_arrays[response_array_index] == NULL) {
-				pr_err("kmalloc failed");
+				pr_err("kzalloc failed");
 				ret = -ENOMEM;
 				goto end;
 			}
 
-			strcpy(response_arrays[response_array_index], "[save_check]");
+			strcpy(response_arrays[response_array_index], " secswitch_name=");
 			//应该有 workflow的名字
 			strncat(response_arrays[response_array_index], cd->name, strlen(cd->name));
-			strcat(response_arrays[response_array_index],": original: ");
-			sprintf(int_str, "%llx", analyze_status_data->sc_data.data[data_index]);
+			strcat(response_arrays[response_array_index]," old_value=");
+			sprintf(int_str, "%lld", analyze_status_data->sc_data.data[data_index]);
 			strncat(response_arrays[response_array_index], int_str, strlen(int_str));
-			strcat(response_arrays[response_array_index],"; now: ");
-			sprintf(int_str, "%llx", measure_value);
+			strcat(response_arrays[response_array_index]," new_value=");
+			sprintf(int_str, "%lld", measure_value);
 			strncat(response_arrays[response_array_index], int_str, strlen(int_str));
-			strcat(response_arrays[response_array_index],".!\n");
+			strcat(response_arrays[response_array_index],".\n");
 
 			response_data_char_len += strlen(response_arrays[response_array_index]);
 			ret = RESPONSE_REPORT;
@@ -156,9 +156,9 @@ static int analyze_save_check_normal(struct list_head *collect_data_list, analyz
 		timestamp_len = get_timestamp_str(&timestamp);
 		response_data->report_data.type = event_type;
 		response_data->report_data.len = response_data_char_len + timestamp_len;
-		response_data->report_data.text = kmalloc(response_data->report_data.len + 1, GFP_KERNEL);
+		response_data->report_data.text = kzalloc(response_data->report_data.len + 1, GFP_KERNEL);
 		if (response_data->report_data.text == NULL) {
-			pr_err("kmalloc failed");
+			pr_err("kzalloc failed");
 			ret = -ENOMEM;
 			goto end;
 		}
