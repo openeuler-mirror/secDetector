@@ -86,8 +86,10 @@ void secReadFrom(void *reader, char *data, int data_len)
 	string msg("");
 	PubSubClient *cur_client = nullptr;
 
-	if (!data || data_len <= 1)
-		return
+	if (!data || data_len <= 1) {
+		printf("lib secReadFrom data or data_len error\n");
+		return;
+	}
 
 	(void)memset(data, 0, data_len);
 
