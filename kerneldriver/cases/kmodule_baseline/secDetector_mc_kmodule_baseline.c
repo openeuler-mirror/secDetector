@@ -43,7 +43,7 @@ static int add_kmodule_baseline_name(const char *name)
 		return -1;
 	}
 
-	name_len = strlen(name) < NAME_LEN ? strlen(name) : NAME_LEN;		
+	name_len = strlen(name) < NAME_LEN ? strlen(name) : NAME_LEN - 1;
 	memcpy(module->module_name, name, name_len);
 	list_add(&module->list, &chkrkatt_module_list);
 	return 0;
@@ -86,7 +86,7 @@ static void report_kmodule_baseline(void)
 	list_for_each_entry_safe(get_module_name, get_module_name_next, &chkrkatt_module_list, list) {
 		if (get_module_name != NULL && get_module_name_next != NULL) {
 			/* 2: ', ' */
-			if(sizeof(module_name_all) + sizeof(get_module_name->module_name) < NAME_LEN - 2 - header_msg_len) {
+			if(strlen(module_name_all) + strlen(get_module_name->module_name) < NAME_LEN - 2 - header_msg_len) {
 				strcat(module_name_all, get_module_name->module_name);
 				strcat(module_name_all, strtmp);
 			}

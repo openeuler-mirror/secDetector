@@ -37,7 +37,7 @@ static int task_bprm_check(struct secDetector_workflow *wf,
 	char *pathname = NULL;
 	response_data_t log;
 	bool matched = false;
-	struct task_block_rules_item *item;
+	struct task_block_rules_item *item = NULL;
 	int ret = 0;
 
 	buf = kzalloc(BUF_SIZE, GFP_ATOMIC);
@@ -88,7 +88,7 @@ static struct secDetector_workflow workflow_array[] = {
 
 static int proc_show(struct seq_file *m, void *v)
 {
-	struct task_block_rules_item *item;
+	struct task_block_rules_item *item = NULL;
 
 	mutex_lock(&rules_mutex);
 	list_for_each_entry (item, &task_block_rule_list, list) {
@@ -105,8 +105,8 @@ static int proc_open(struct inode *inode, struct file *file)
 
 static void clear_task_rule_list(void)
 {
-	struct task_block_rules_item *item;
-	struct task_block_rules_item *tmp;
+	struct task_block_rules_item *item = NULL;
+	struct task_block_rules_item *tmp = NULL;
 
 	mutex_lock(&rules_mutex);
 	list_for_each_entry_safe (item, tmp, &task_block_rule_list, list) {
@@ -122,10 +122,10 @@ static void clear_task_rule_list(void)
 static ssize_t proc_write(struct file *file, const char __user *buffer,
 			  size_t len, loff_t *offset)
 {
-	char *data;
-	char *str;
-	char *rule;
-	struct task_block_rules_item *item;
+	char *data = NULL;
+	char *str = NULL;
+	char *rule = NULL;
+	struct task_block_rules_item *item = NULL;
 	ssize_t r = -EINVAL;
 
 	data = memdup_user_nul(buffer, len);
