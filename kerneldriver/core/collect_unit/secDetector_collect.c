@@ -32,6 +32,7 @@ struct collect_data *init_collect_data(const char *name)
 	cd->name = kmalloc(nl + 1, GFP_KERNEL);
 	if (cd->name == NULL) {
 		pr_err("kmalloc failed");
+		kfree(cd);
 		return NULL;
 	}
 	strncpy(cd->name, name, nl);
