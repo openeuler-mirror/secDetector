@@ -6,12 +6,12 @@
 
 Operating System Security Intrusion Detection System
 
-secDetector是专为OS设计的内构入侵检测系统，旨在为关键信息基础设施提供入侵检测及响应公共能力，为第三方安全工具减少开发成本同时增强检测和响应能力。secDetector基于ATT&CK攻击模式库建模提供更为丰富的安全事件原语，并且可以提供实时阻断和灵活调整的响应能力。
+secDetector 是专为OS设计的内构入侵检测系统，旨在为关键信息基础设施提供入侵检测及响应能力，为第三方安全工具减少开发成本同时增强检测和响应能力。secDetector 基于ATT&CK攻击模式库建模提供更为丰富的安全事件原语，并且可以提供实时阻断和灵活调整的响应能力。
 
-secDetector作为一套灵活的OS内构入侵检测系统，有三种使用模式：
+secDetector 作为一套灵活的OS内构入侵检测系统，有三种使用模式：
 
 1. 直接被系统用户开启用作一些基础异常事件的告警和处置。
-2. 被安全态势感知服务集成，补齐系统信息采集缺陷用于APT等复杂的安全威胁分析和重点事件布控实时阻断。
+2. 被安全态势感知服务集成，补齐系统信息采集缺陷，用于APT等复杂的安全威胁分析和重点事件布控实时阻断。
 3. 由安全从业人员或安全感知服务提供商二次开发，基于可拓展框架构建精确、高效、及时的入侵检测与响应能力。
 
 ## 软件架构
@@ -50,42 +50,46 @@ secDetector作为一套灵活的OS内构入侵检测系统，有三种使用模�
 ||========================================================================||
 ```
 
-secDetector在架构上分为四个部分：SDK、Service、检测特性集合cases、检测框架core。
+secDetector在架构上分为四个部分：SDK、service、检测特性集合cases、检测框架core。
 
 - SDK
 
-  SDK是以一个用户态动态链接库lib的形态承载，被部署到需要使用secDetector入侵检测系统的安全感知业务中，用于和入侵检测系统Service通讯，完成所需的工作，如订阅，去订阅，读取现有消息，主动触发检测等功能。secDetector提供的异常信息被定义成不同的case，安全感知业务可以根据自身需求订阅。
+  SDK是以一个用户态动态链接库lib的形态承载，被部署到需要使用secDetector入侵检测系统的安全感知业务中。SDK用于和secDetector入侵检测系统的service通讯，完成所需的工作（例如订阅，去订阅，读取现有消息等功能）。secDetector提供的异常信息被定义成不同的case，安全感知业务可以根据自身需求订阅。
 
-- Service
+- service
 
-  Service是以一个用户态服务应用的形态承载，向上管理、维护安全感知业务的case订阅信息，向下维护case的运行情况。下层框架core和检测特性集合case采集到的信息由Service统一收集，按需转发给不同的安全感知业务。安全感知业务对于底层检测特性集合case和框架core的配置、管理的需求也有Service进行统一的管理，转发。不同的安全感知业务可能会需求同样的case，Service会统计出所有安全感知业务需求case的并集，向下层注册。
+  service是以一个用户态服务应用的形态承载，向上管理、维护安全感知业务的case订阅信息，向下维护case的运行情况。框架core和检测特性集合case采集到的信息由service统一收集，按需转发给不同的安全感知业务。安全感知业务对于底层检测特性集合case和框架core的配置、管理的需求也由service进行统一的管理和转发。不同的安全感知业务可能会需求同样的case，service会统计出所有安全感知业务需求case的并集，向下层注册。
 
-- 特性集合Cases
+- 特性集合cases
 
-  检测特性集合cases是一系列异常检测探针，根据异常信息的不同会有不同的形态，比如内核异常信息检测的每个探针会以内核模块ko的形态承载。一个case代表一个探针，一个探针往往是一类异常信息或者一类异常事件的信息。比如进程类探针会关注所有进程的创建、退出、属性修改等事件信息，文件类探针会关注文件的创建、删除、属性等事件信息。因此一个探针可能会包含多个对多个事件的监控，而这些对不同事件的监控逻辑可能无法部署在同一个执行流当中。我们使用一个工作流workflow的概念对应一个探针在同一个执行流中的工作，一个探针可以包含一个或者多个工作流。比如对于进程探针而言，进程创建检测和进程属性修改检测就是不同的工作流。
+  检测特性集合cases是一系列异常检测探针，根据异常信息的不同会有不同的形态，比如内核异常信息检测的每个探针会以内核模块ko的形态承载。一个case代表一个探针，一个探针往往是一类异常信息或者一类异常事件的信息。比如进程类探针会关注所有进程的创建、退出、属性修改等事件信息，内存修改类探针会收集内核模块列表和安全开关等信息。因此一个探针可能会包含对多个事件的监控，而这些对不同事件的监控逻辑可能无法部署在同一个执行流当中。我们使用工作流（workflow）的概念表示一个探针在同一个执行流中的工作，一个探针可以包含一个或者多个工作流。比如对于进程探针而言，进程创建检测和进程属性修改检测就是不同的工作流。
 
-- 框架Core
+- 框架core
 
-  检测框架core是以一个cases依赖的基础框架，提供case的管理，和workflow所需的通用的基础功能单元。内核异常信息检测框架会以内核模块ko的形态承载。一个检测特性case可以将自己注册到框架中，或者从框架中去注册。框架还可以提供特定的交互接口以满足外部的动态请求。一个workflow被定义为有四类功能单元组成：事件发生器、信息采集器、事件分析器、响应单元。
+  检测框架core是每一个case依赖的基础框架，提供case的管理和workflow所需的通用的基础功能单元。内核异常信息检测框架会以内核模块ko的形态承载。一个检测特性case可以将自己注册到框架中，或者从框架中去注册。框架还可以提供特定的交互接口以满足外部的动态请求。一个workflow被定义为有四类功能单元组成：事件发生器、信息采集器、事件分析器、响应单元。
 
-Driver分为两类，kerneldriver 和 usrdriver。顾名思义，kerneldriver是部署在内核态中的，以内核模块的形式承载。usrdriver是部署在用户态中的，直接被部署为Service中的一个模块。从逻辑上usrdriver是在Service之下的，但是在运行中，为了降低通信成本，usrdriver被直接集成在Service程序中。
+特性集合cases和框架core合起来被称为driver。driver驱动提供了secDetector功能的最底层的系统级实现。
+driver分为两类，kerneldriver 和 usrdriver。顾名思义，kerneldriver是部署在内核态中的，以内核模块的形式承载。usrdriver是部署在用户态中的，直接被部署为service中的一个模块。从逻辑上usrdriver是在service之下的，但是在运行中，为了降低通信成本，usrdriver被直接集成在service程序中。
 
 ## 安装教程
 - kerneldriver
-1.安装编译依赖 #yum install kernel-devel kernel-headers
-2.core目录下执行make，并插入core模块 #insmod secDetector_core.ko
-3.cases目录下执行make，按需插入需要的模块 如 #insmod secDetector_kmodule_baseline.ko
+
+   1. 安装编译依赖 #yum install kernel-devel kernel-headers
+   2. core目录下执行make，并插入core模块 #insmod secDetector_core.ko
+   3. cases目录下执行make，按需插入需要的模块 如 #insmod secDetector_kmodule_baseline.ko
 
 - observer_agent
-1. 安装编译依赖 #yum install gcc gcc-c++ clang libbpf-devel bpftool grpc-devel grpc-plugins cmake make protobuf-devel c-ares-devel libuuid-devel
-2. mkdir -p observer_agent/build && cd observer_agent/build
-3. cmake .. && make
-4. 执行服务程序 # ./secDetectord &
+
+   1. 安装编译依赖 #yum install gcc gcc-c++ clang libbpf-devel bpftool grpc-devel grpc-plugins cmake make protobuf-devel c-ares-devel libuuid-devel
+   2. mkdir -p build && cd build
+   3. cmake .. && make
+   4. 执行服务程序 # ./secDetectord &
 
 - lib
-1、mkdir -p lib/build && cd lib/build
-2、cmake .. && make
-3、建议库文件部署到/usr/lib64/secDetector/libsecDetectorsdk.so
+
+   1. mkdir -p lib/build && cd lib/build
+   2. cmake .. && make
+   3. 建议库文件部署到/usr/lib64/secDetector/libsecDetectorsdk.so
 
 以上3部分按顺序构建并部署完之后，可以调用libsecDetectorsdk.so提供的api接口开发应用
 
