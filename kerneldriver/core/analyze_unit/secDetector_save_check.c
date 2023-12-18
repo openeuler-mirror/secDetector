@@ -124,7 +124,7 @@ static int analyze_save_check_normal(struct list_head *collect_data_list, analyz
 				break;
 		}
 		if (measure_value != analyze_status_data->sc_data.data[data_index]) {
-			pr_debug("[save_check]%s: original: %lld; now: %lld.!\n",
+			pr_warn("[save_check]%s: original: %llu; now: %llu.!\n",
 					cd->name, analyze_status_data->sc_data.data[data_index], measure_value);
 			response_arrays[response_array_index] = kzalloc(strlen(cd->name) + REPORT_MORE_CHAR_LEN, GFP_KERNEL);
 			if (response_arrays[response_array_index] == NULL) {
@@ -136,13 +136,13 @@ static int analyze_save_check_normal(struct list_head *collect_data_list, analyz
 			strcpy(response_arrays[response_array_index], " secswitch_name=");
 			//应该有 workflow的名字
 			strncat(response_arrays[response_array_index], cd->name, strlen(cd->name));
-			strcat(response_arrays[response_array_index]," old_value=");
-			sprintf(int_str, "%lld", analyze_status_data->sc_data.data[data_index]);
+			strcat(response_arrays[response_array_index], " old_value=");
+			sprintf(int_str, "%llu", analyze_status_data->sc_data.data[data_index]);
 			strncat(response_arrays[response_array_index], int_str, strlen(int_str));
-			strcat(response_arrays[response_array_index]," new_value=");
-			sprintf(int_str, "%lld", measure_value);
+			strcat(response_arrays[response_array_index], " new_value=");
+			sprintf(int_str, "%llu", measure_value);
 			strncat(response_arrays[response_array_index], int_str, strlen(int_str));
-			strcat(response_arrays[response_array_index],".\n");
+			strcat(response_arrays[response_array_index], ".");
 
 			response_data_char_len += strlen(response_arrays[response_array_index]);
 			ret = RESPONSE_REPORT;
@@ -168,6 +168,7 @@ static int analyze_save_check_normal(struct list_head *collect_data_list, analyz
 		}
 		for (i = 0; i < response_array_index; i++)
 			strncat(response_data->report_data.text, response_arrays[i], strlen(response_arrays[i]));
+		strcat(response_data->report_data.text, "\n");
 	}
 end:
 	for (i = 0; i < response_array_index; i++)
