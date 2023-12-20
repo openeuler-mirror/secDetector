@@ -177,6 +177,9 @@ static struct process_info *get_common_process_info(struct task_struct *tsk, str
 	if (get_task_root(tsk, &root) == 0) {
 		pi->root = d_path(&root, pi->rootbuf, PATH_LEN);
 	}
+
+	path_put(&root);
+
 	if (IS_ERR_OR_NULL(pi->root)) {
 		pi->root = "invalid";
 	}
@@ -184,6 +187,9 @@ static struct process_info *get_common_process_info(struct task_struct *tsk, str
 	if (get_task_cwd(tsk, &cwd) == 0) {
 		pi->cwd = d_path(&cwd, pi->cwdbuf, PATH_LEN);
 	}
+
+	path_put(&cwd);
+
 	if (IS_ERR_OR_NULL(pi->cwd)) {
 		pi->cwd = "invalid";
 	}
@@ -258,6 +264,7 @@ static int ptrace_attach_pre_handler(struct secDetector_workflow *wf,
 #endif
 	if (!attach_task) {
 		pr_err("ptrace_attach input task_struct error or arch don't support\n");
+		put_common_process_info(pi);
 		return 0;
 	}
 
@@ -269,6 +276,7 @@ static int ptrace_attach_pre_handler(struct secDetector_workflow *wf,
 	if (!log.report_data.text) {
 		pr_err("log.report_data.text kzalloc failed!\n");
 		kfree(timestamp);
+		put_common_process_info(pi);
 		return 0;
 	}
 	snprintf(log.report_data.text, BUF_SIZE,
@@ -304,6 +312,7 @@ static int do_pipe2_pre_handler(struct secDetector_workflow *wf,
 	if (!log.report_data.text) {
 		pr_err("log.report_data.text kzalloc failed!\n");
 		kfree(timestamp);
+		put_common_process_info(pi);
 		return 0;
 	}
 	snprintf(log.report_data.text, BUF_SIZE,
