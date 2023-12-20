@@ -38,6 +38,11 @@ static int init_analyze_status_data_sc(analyze_status_t *analyze_status_data, in
 		return 0;
 	}
 	analyze_status_data->sc_data.data = kmalloc(sizeof(unsigned long long) * len, GFP_KERNEL);
+	if (analyze_status_data->sc_data.data == NULL) {
+		pr_err("kmalloc failed");
+		return -ENOMEM;
+	}
+	analyze_status_data->sc_data.data_type = ANALYZE_STATUS_SAVE_CHECK;
 	analyze_status_data->sc_data.len = len;
 	return 0;
 }
@@ -51,6 +56,7 @@ void free_analyze_status_data_sc(analyze_status_t *analyze_status_data)
 
 static int analyze_save_check_init(struct list_head *collect_data_list, analyze_status_t *analyze_status_data, response_data_t *response_data)
 {
+	int ret = 0;
 	int data_index = 0;
 	struct collect_data *cd;
 	list_for_each_entry(cd, collect_data_list, list) {
@@ -58,7 +64,9 @@ static int analyze_save_check_init(struct list_head *collect_data_list, analyze_
 			continue;
 		data_index++;
 	}
-	init_analyze_status_data_sc(analyze_status_data, data_index);
+	ret = init_analyze_status_data_sc(analyze_status_data, data_index);
+	if (ret < 0)
+		return ret;
 
 	data_index = 0;
 	list_for_each_entry(cd, collect_data_list, list) {
@@ -89,7 +97,7 @@ static int analyze_save_check_normal(struct list_head *collect_data_list, analyz
 	unsigned long long measure_value;
 	struct collect_data *cd;
 	char *timestamp = NULL;
-	int timestamp_len;
+	int timestamp_len = 0;
 	char **response_arrays;
 	int response_array_index = 0;
 	char int_str[MAX_DIGITS];
@@ -124,7 +132,7 @@ static int analyze_save_check_normal(struct list_head *collect_data_list, analyz
 				break;
 		}
 		if (measure_value != analyze_status_data->sc_data.data[data_index]) {
-			pr_warn("[save_check]%s: original: %llu; now: %llu.!\n",
+			pr_debug("[save_check]%s: original: %llu; now: %llu.!\n",
 					cd->name, analyze_status_data->sc_data.data[data_index], measure_value);
 			response_arrays[response_array_index] = kzalloc(strlen(cd->name) + REPORT_MORE_CHAR_LEN, GFP_KERNEL);
 			if (response_arrays[response_array_index] == NULL) {
@@ -162,15 +170,17 @@ static int analyze_save_check_normal(struct list_head *collect_data_list, analyz
 			ret = -ENOMEM;
 			goto end;
 		}
-		if (timestamp_len > 0) {
-			strncat(response_data->report_data.text, timestamp, timestamp_len);
-			kfree(timestamp);
-		}
+
 		for (i = 0; i < response_array_index; i++)
 			strncat(response_data->report_data.text, response_arrays[i], strlen(response_arrays[i]));
 		strcat(response_data->report_data.text, "\n");
 	}
+
 end:
+	if (timestamp_len > 0) {
+		strncat(response_data->report_data.text, timestamp, timestamp_len);
+		kfree(timestamp);
+}
 	for (i = 0; i < response_array_index; i++)
 		kfree(response_arrays[i]);
 	kfree(response_arrays);
