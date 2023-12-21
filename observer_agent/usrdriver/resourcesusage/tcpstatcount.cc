@@ -6,7 +6,7 @@
 
 #include "resources_collect.h"
 
-#define debug_info 1
+#define debug_info 0
 
 json11::Json tcp4statcount() {
     json11::Json emptyjson = json11::Json::object {};
