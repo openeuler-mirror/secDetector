@@ -178,9 +178,10 @@ static int analyze_save_check_normal(struct list_head *collect_data_list, analyz
 
 end:
 	if (timestamp_len > 0) {
-		strncat(response_data->report_data.text, timestamp, timestamp_len);
+		if (response_data->report_data.text)
+			strncat(response_data->report_data.text, timestamp, timestamp_len);
 		kfree(timestamp);
-}
+	}
 	for (i = 0; i < response_array_index; i++)
 		kfree(response_arrays[i]);
 	kfree(response_arrays);
