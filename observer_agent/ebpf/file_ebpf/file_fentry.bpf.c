@@ -178,7 +178,7 @@ int BPF_PROG(fexit_vfs_write, struct file *file, const char *buf, size_t count, 
 }
 
 SEC("fexit/vfs_unlink")
-int BPF_PROG(fexit_vfs_unlink, struct inode *dir, struct dentry *dentry, struct inode **delegated_inode, int ret)
+int BPF_PROG(fexit_vfs_unlink, struct mnt_idmap *idmap, struct inode *dir, struct dentry *dentry, struct inode **delegated_inode, int ret)
 {
 	struct ebpf_event *e = NULL;
 
@@ -287,7 +287,7 @@ int BPF_PROG(fexit_chown_common, const struct path *path, uid_t user, gid_t grou
 }
 
 SEC("fentry/__vfs_setxattr_noperm")
-int BPF_PROG(fentry__vfs_setxattr_noperm, struct dentry *dentry, const char *name, const void *value, size_t size, int flags)
+int BPF_PROG(fentry__vfs_setxattr_noperm, struct mnt_idmap *idmap, struct dentry *dentry, const char *name, const void *value, size_t size, int flags)
 {
 	struct ebpf_event *e = NULL;
 
@@ -307,7 +307,7 @@ int BPF_PROG(fentry__vfs_setxattr_noperm, struct dentry *dentry, const char *nam
 }
 
 SEC("fentry/__vfs_removexattr_locked")
-int BPF_PROG(fentry__vfs_removexattr_locked, struct dentry *dentry, const char *name, struct inode **delegated_inode)
+int BPF_PROG(fentry__vfs_removexattr_locked, struct mnt_idmap *idmap, struct dentry *dentry, const char *name, struct inode **delegated_inode)
 {
 	struct ebpf_event *e = NULL;
 
@@ -327,10 +327,12 @@ int BPF_PROG(fentry__vfs_removexattr_locked, struct dentry *dentry, const char *
 }
 
 SEC("fentry/vfs_rename")
-int BPF_PROG(fentry_vfs_rename, struct inode *old_dir, struct dentry *old_dentry,
-	struct inode *new_dir, struct dentry *new_dentry, struct inode **delegated_inode,
-	unsigned int flags)
+int BPF_PROG(fentry_vfs_rename, struct renamedata *rd)
 {
+	if (!rd)
+		return 0;
+	struct dentry *old_dentry = rd->old_dentry;
+	struct dentry *new_dentry = rd->new_dentry;
 	struct ebpf_event *e = NULL;
 	char name[] = "rename";
 
