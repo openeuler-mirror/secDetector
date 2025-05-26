@@ -1,0 +1,12 @@
+label: secDetector使用指南
+isManual: true
+description: secDetector是OS内构入侵检测系统，为关键信息基础设施提供入侵检测及响应能力
+sections:
+  - label: 认识secDetector
+    href: ./introduction_to_secdetector.md
+  - label: 安装与部署
+    href: ./install_secdetector.md
+  - label: 接口参考
+    href: ./api_reference.md
+  - label: 使用secDetector
+    href: ./using_secdetector.md
