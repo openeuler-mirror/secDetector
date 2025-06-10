@@ -8,7 +8,7 @@ secDetector 提供了SDK，一个so库，用户可以在自己的应用程序中
 
 1. 使用 C 或 C++ 开发的应用程序确保include路径包含后，可以首先在程序中引用这两个头文件。
 
-   ```
+   ```c
    #include <secDetector/secDetector_topic.h>
    #include <secDetector/secDetector_sdk.h>
    ```

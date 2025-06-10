@@ -10,7 +10,7 @@
 
 ### 环境准备
 
-安装 openEuler 系统，安装方法参考《[安装指南](../../installation_upgrade/installation/installation-on-servers.md)》。
+安装 openEuler 系统，安装方法参考《[安装指南](https://docs.openeuler.org/zh/docs/24.03_LTS/docs/Installation/installation.html)》。
 
 ## 安装secDetector
 
@@ -57,10 +57,9 @@ secDetector的主体secDetectord是以系统服务的形式部署在系统中的
 
    secDetector_core 支持一个命令行参数ringbuf_size。用户可以通过指定该参数的值来控制 kernel driver 与 用户态secDetectord之间数据通道的缓存空间尺寸。该参数可以被指定为4~1024中的一个整数，单位是MB。默认值是4，必须为2的幂。参考命令如下：
 
-   ```
+   ```shell
    sudo insmod secDetector_core.ko ringbuf_size=128
    ```
-
 
 2. 插入 kernel driver 的功能模块：secDetector的 kernel driver 采用模块化部署方式。用户可以选择基于框架部署满足需要的功能模块，也可以选择部署全部模块。参考命令如下：
 
@@ -90,7 +89,7 @@ usr driver当前包含了文件操作类探针和进程管理类探针的能力�
 
 secDetectord支持如下一些配置选项：
 
-```
+```text
 用法：secDetectord [选项]
 secDetectord 默认会在后台运行，从探针中取得数据并转发给订阅者。
 选项：
