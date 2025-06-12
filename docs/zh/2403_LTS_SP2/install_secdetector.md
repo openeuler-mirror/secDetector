@@ -8,9 +8,11 @@
 * secDetector磁盘使用需求：配额1GB及以上。
 * secDetector内存使用需求：配额100MB及以上。
 
+### 概述               
+
 ### 环境准备
 
-安装 openEuler 系统，安装方法参考《[安装指南](https://docs.openeuler.org/zh/docs/24.03_LTS/docs/Installation/installation.html)》。
+安装 openEuler 系统，安装方法参考《[安装指南](https://docs.openeuler.openatom.cn/zh/docs/24.03_LTS_SP2/server/installation_upgrade/installation/installation_on_servers.html)》。
 
 ## 安装secDetector
 
@@ -23,7 +25,7 @@
    sudo yum install secDetector
    ```
 
-> ![](./public_sys-resources/icon-note.gif)说明：
+> [!NOTE]说明
 >
 > 安装secDetector后在指定目录下可获得部署secDetector所需的相关文件：
 
