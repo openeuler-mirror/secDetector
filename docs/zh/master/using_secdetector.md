@@ -23,11 +23,11 @@ secDetector 提供了SDK，一个so库，用户可以在自己的应用程序中
 
 可以参考secDetector代码仓上的示例代码，由python语言编写。
 
-1. 可以在如下链接中查看示例代码
+1. 可以在如下链接中查看示例代码。
 
    [examples/python · openEuler/secDetector (gitee.com)](https://gitee.com/openeuler/secDetector/tree/master/examples/python)
 
-2. 也可以下载后参考
+2. 也可以下载后参考。
 
    ```shell
    git clone https://gitee.com/openeuler/secDetector.git
