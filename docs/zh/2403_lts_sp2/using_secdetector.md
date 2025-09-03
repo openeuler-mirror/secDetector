@@ -29,9 +29,9 @@ secDetector 提供了SDK，一个so库，用户可以在自己的应用程序中
 
 2. 也可以下载后参考
 
-```shell
-git clone https://gitee.com/openeuler/secDetector.git
-```
+   ```shell
+   git clone https://gitee.com/openeuler/secDetector.git
+   ```
 
 ## 规格与约束
 
